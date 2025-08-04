@@ -1,0 +1,36 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class SkipHandler : MonoBehaviour
+{
+    [SerializeField] private GameObject confirmationPopup;
+    [SerializeField] private Button skipButton;
+    [SerializeField] private Button yesButton;
+    [SerializeField] private Button noButton;
+    [SerializeField] private string startMenuSceneName = "StartMenu"; // change to your actual scene name
+
+    void Start()
+    {
+        confirmationPopup.SetActive(false);
+
+        skipButton.onClick.AddListener(ShowConfirmation);
+        yesButton.onClick.AddListener(SkipToStartMenu);
+        noButton.onClick.AddListener(HideConfirmation);
+    }
+
+    void ShowConfirmation()
+    {
+        confirmationPopup.SetActive(true);
+    }
+
+    void HideConfirmation()
+    {
+        confirmationPopup.SetActive(false);
+    }
+
+    void SkipToStartMenu()
+    {
+        SceneManager.LoadScene(startMenuSceneName);
+    }
+}

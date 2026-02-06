@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3455296642201951335
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2520468640027281428}
+  - component: {fileID: 8536653522023713962}
+  m_Layer: 0
+  m_Name: TabletRecall
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2520468640027281428
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3455296642201951335}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8536653522023713962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3455296642201951335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 638979a0d34d8514c9112fd79c9f6e3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  headCamera: {fileID: 0}
+  tabletRoot: {fileID: 0}
+  toggleAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Toggle
+      m_Type: 1
+      m_ExpectedControlType: Button
+      m_Id: 4fc40de1-fd44-43aa-8a6b-87749319ba13
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: f9470a6b-79e8-40a2-8642-32f00acf8216
+        m_Path: <Keyboard>/k
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Toggle
+        m_Flags: 0
+      - m_Name: 
+        m_Id: 630dc219-45ca-4c48-95a7-51c1da267d2e
+        m_Path: <OculusTouchController>{RightHand}/primaryButton
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Toggle
+        m_Flags: 0
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  forwardDistance: 0.4
+  downOffset: 0.15
+  rightOffset: 0.15
+  rotationOffsetEuler: {x: 0, y: -90, z: 0}
+  disableTheseWhileRecalling:
+  - {fileID: 0}
+  tabletColliders: []
+  resetPhysicsOnShow: 1

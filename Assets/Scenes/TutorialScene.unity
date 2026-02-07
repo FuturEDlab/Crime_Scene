@@ -1064,7 +1064,7 @@ GameObject:
   - component: {fileID: 290514986}
   - component: {fileID: 290514985}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: Escape Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6981,7 +6981,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1660044559
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -9036,7 +9036,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &2112591111
 BoxCollider:
   m_ObjectHideFlags: 0

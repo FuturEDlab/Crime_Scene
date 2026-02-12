@@ -6,11 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/CS_Outside.unity
-    guid: a11cfd8e32bd94a60a392b6943f165c4
-  - enabled: 0
     path: Assets/Scenes/CSHouse.unity
     guid: 373fc8374c7b3b5409e77f746d677d56
+  - enabled: 1
+    path: Assets/Scenes/CS_Outside.unity
+    guid: a11cfd8e32bd94a60a392b6943f165c4
   - enabled: 0
     path: Assets/BNG Framework/Scenes/Weapons.unity
     guid: 2626939ed08e1ec41bee0433a7f068d9

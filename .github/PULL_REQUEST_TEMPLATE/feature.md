@@ -5,6 +5,10 @@
 [Insert a short description of the new feature here]  
 Example: Adds teleportation to the main menu so users can move more easily.
 
+Is this related to a task/issue?
+- [ ] No
+- [ ] Yes — Change the <insert> to the ID/# of the task in the following sentence: Fixes #<insert>.
+
 ---
 
 ## How did you test it?
@@ -27,6 +31,10 @@ Tested in MainMenuScene on Meta Quest 3. Teleportation worked in all intended ar
 Does this affect existing features?
 - [ ] No
 - [ ] Yes — [Briefly explain how here]
+
+Did you change any project settings? (Ex: Player settings, physics engine settings, quality settings references, anything in the project settings menu, etc.)
+- [ ] No
+- [ ] Yes — [Briefly explain here.]
 
 ---
 

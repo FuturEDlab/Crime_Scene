@@ -2691,7 +2691,8 @@ namespace BNG {
             }
         }     
     }
-
+    
+    
     #region enums
     public enum GrabType {
         Snap,

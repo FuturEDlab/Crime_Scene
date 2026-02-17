@@ -28,9 +28,6 @@ MonoBehaviour:
     - TransformName: hands:b_r_thumb3
       LocalPosition: {x: 0.026375083, y: -0.00000313834, z: 0.00000024626075}
       LocalRotation: {x: 0.08512667, y: -0.074479416, z: 0.18467805, w: 0.97626853}
-    - TransformName: hands:b_r_thumb_ignore
-      LocalPosition: {x: 0.034079235, y: 0.00000027444756, z: 0.00000012232366}
-      LocalRotation: {x: -4e-45, y: 1e-45, z: -7.7316284e-38, w: 1}
     IndexJoints:
     - TransformName: hands:b_r_index1
       LocalPosition: {x: -0.08707797, y: 0.035099972, z: 0.0068147103}

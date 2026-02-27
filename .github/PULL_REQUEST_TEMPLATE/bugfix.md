@@ -13,21 +13,23 @@ Is this related to a task/issue?
 
 ## How did you test it?
 
-- How did you initally produce/reproduce the bug? [Insert steps here]
-- How did you test the fix? [Insert steps here]
-- Platform(s) tested on: [e.g., Unity Editor, Meta Quest, etc.]
-- Test results: [Insert what happened after the fix]
+- **How did you initially produce/reproduce the bug?** [Insert steps here]
+- **How did you test the fix?** [Insert steps here]
+- **Platform(s) tested on:** [e.g., Unity Editor, Meta Quest, etc.]
+- **Test results:** [Insert what happened after the fix]
 
-Example:  
-Tested in GrabScene on Meta Quest 2. Grabbing works now across all objects. No new issues noticed.
+### 🎮 Controls for Testing
+[Insert specific inputs or buttons needed to trigger/verify the fix]
+*Example: Press 'G' to grab, or use the Right Trigger on the Touch Controller.*
 
 ---
 
 ## What did this change affect?
 
-- Scripts changed: [Insert script names here]
-- Prefabs changed: [Insert prefab names here]
-- Other systems affected: [Insert if applicable]
+- **Scripts changed:** [Insert script names here]
+- **Prefabs changed:** [Insert prefab names here]
+- **Scenes edited:** [Insert scene names here]
+- **Other systems affected:** [Insert if applicable]
 
 Could this cause other problems?
 - [ ] No

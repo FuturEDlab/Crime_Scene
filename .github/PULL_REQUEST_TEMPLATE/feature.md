@@ -13,20 +13,22 @@ Is this related to a task/issue?
 
 ## How did you test it?
 
-- Scenes tested: [Insert scene name(s) here]
-- Platform(s) tested on: [e.g., Unity Editor, Meta Quest 2, etc.]
-- Test results: [Insert what you observed – did it work? Any issues?]
+- **Scenes tested:** [Insert scene name(s) here]
+- **Platform(s) tested on:** [e.g., Unity Editor, Meta Quest 2, etc.]
+- **Test results:** [Insert what you observed – did it work? Any issues?]
 
-Example:  
-Tested in MainMenuScene on Meta Quest 3. Teleportation worked in all intended areas. No errors found.
+### 🎮 Controls for Testing
+[Insert specific inputs or buttons needed to use this feature]
+*Example: Press 'X' to toggle the menu, or use the Left Thumbstick to aim the teleport beam.*
 
 ---
 
 ## What did this change affect?
 
-- Scripts changed: [Insert script names here]
-- Prefabs changed: [Insert prefab names here]
-- Other affected systems: [Insert any other relevant systems here]
+- **Scripts changed:** [Insert script names here]
+- **Prefabs changed:** [Insert prefab names here]
+- **Scenes edited:** [Insert scene names here]
+- **Other affected systems:** [Insert any other relevant systems here]
 
 Does this affect existing features?
 - [ ] No

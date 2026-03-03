@@ -2,20 +2,65 @@ using UnityEngine;
 
 public class StartMusicOnInput : MonoBehaviour
 {
-    private AudioSource audioSource;
-    private bool musicStarted = false;
+    private AudioSource _audioSource;
+    private bool _musicStarted;
+
+    [Header("Player Settings")]
+    public Transform playerTransform;
 
     void Start()
     {
-        audioSource = GetComponent<AudioSource>();
+        _audioSource = GetComponent<AudioSource>();
+
+        if (_audioSource != null)
+        {
+            _audioSource.spatialBlend = 0f;
+            _audioSource.loop = true;
+            _audioSource.Stop();
+        }
     }
 
     void Update()
     {
-        if (!musicStarted && (Input.anyKeyDown || Input.GetMouseButtonDown(0)))
+        if (!_musicStarted && _audioSource != null)
         {
-            audioSource.Play();
-            musicStarted = true;
+            if (Input.anyKeyDown ||
+                Input.GetMouseButtonDown(0) ||
+                Input.GetButtonDown("Fire1") ||
+                Input.GetButtonDown("Jump"))
+            {
+                StartMusic();
+            }
         }
+    }
+
+    public void StartMusic()
+    {
+        if (!_musicStarted && _audioSource != null)
+        {
+            _audioSource.Play();
+            _musicStarted = true;
+        }
+    }
+
+    public void StopMusic()
+    {
+        if (_musicStarted && _audioSource != null)
+        {
+            _audioSource.Stop();
+            _musicStarted = false;
+        }
+    }
+
+    public void PauseMusic()
+    {
+        if (_musicStarted && _audioSource != null)
+            _audioSource.Pause();
+    }
+
+    public void ResumeMusic()
+    {
+        if (_musicStarted && _audioSource != null)
+            _audioSource.UnPause();
     }
 }

@@ -1515,7 +1515,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: d469da35e03b5214db21ccbbc25e3428,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1321003210}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d469da35e03b5214db21ccbbc25e3428, type: 3}
 --- !u!1 &562379079
@@ -1670,6 +1674,12 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 562379079}
   m_CullTransparentMesh: 1
+--- !u!4 &618749851 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d469da35e03b5214db21ccbbc25e3428,
+    type: 3}
+  m_PrefabInstance: {fileID: 485579899}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &730394087
 GameObject:
   m_ObjectHideFlags: 0
@@ -2704,12 +2714,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1321003209}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.01660386, y: -0.7069118, z: -0.7069118, w: 0.01660386}
+  m_LocalPosition: {x: -5.239035, y: 89.17675, z: -0.35090062}
+  m_LocalScale: {x: 0.27180633, y: 0.27180842, z: 0.27180845}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2140027830}
+  m_Father: {fileID: 618749851}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &1321003211
 AudioSource:
@@ -2724,16 +2734,16 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: d0a926121cc3d3148967ebb9b7c2f0f2, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.05
+  m_Volume: 0.011
   m_Pitch: 1
   Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
-  DopplerLevel: 1
+  DopplerLevel: 0.5
   MinDistance: 1
-  MaxDistance: 50
+  MaxDistance: 5
   Pan2D: 0
   rolloffMode: 1
   BypassEffects: 0
@@ -4971,7 +4981,7 @@ AudioSource:
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 126
-  DopplerLevel: 1
+  DopplerLevel: 0.52
   MinDistance: 1
   MaxDistance: 30
   Pan2D: 0
@@ -5466,7 +5476,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2033349948}
-  - {fileID: 1321003210}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807

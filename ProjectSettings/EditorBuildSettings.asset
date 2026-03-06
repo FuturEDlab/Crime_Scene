@@ -6,6 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/InteractableTestScene.unity
+    guid: 21c1fdda5b39d4d61932930dc96906ea
+  - enabled: 1
+    path: Assets/Scenes/TutorialScene.unity
+    guid: 27505f0cadcaf49e1814f052101f6718
+  - enabled: 1
+    path: Assets/Scenes/MenuScene.unity
+    guid: 894ad00d5e29247d898901e70b08dd8e
+  - enabled: 0
+    path: Assets/Scenes/MainMenu.unity
+    guid: a13e633e3013e094ca35edda4329fe91
+  - enabled: 1
     path: Assets/Scenes/CSHouse.unity
     guid: 373fc8374c7b3b5409e77f746d677d56
   - enabled: 1

@@ -1,17 +1,14 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SceneTeleportTrigger : MonoBehaviour
 {
-    [SerializeField] private string targetSceneName;
-    [SerializeField] private string targetSpawnPointName;
+    public string targetScene;
 
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
 
-        if (SceneTransitionManager.Instance != null)
-        {
-            SceneTransitionManager.Instance.Go(targetSceneName, targetSpawnPointName);
-        }
+        SceneManager.LoadScene(targetScene);
     }
 }

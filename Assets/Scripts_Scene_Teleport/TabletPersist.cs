@@ -1,3 +1,5 @@
+// Script is for Tablet not to be destroyed when teleporting between scenes
+
 using UnityEngine;
 
 public class TabletPersist : MonoBehaviour

@@ -8,9 +8,9 @@ public class TabletRecallInScene : MonoBehaviour
     [SerializeField] private Transform headCamera;          // VR head (CenterEyeAnchor)
     [SerializeField] private GameObject tabletRoot;         // Tablet_manager already in the scene
 
-    [Header("Input (A button)")]
-    [SerializeField] private InputActionProperty toggleAction;
-
+    [Header("Input (a button)")]
+    [SerializeField] private InputActionProperty toggleAction;  // For tests in Unity editor and VR. Ability to set up keys for recall
+                                                                // For this project "A" button on VR was chosen
     [Header("Spawn offset relative to camera")]
     [SerializeField] private float forwardDistance = 0.6f;
     [SerializeField] private float downOffset = 0.15f;
@@ -60,11 +60,7 @@ public class TabletRecallInScene : MonoBehaviour
     
         toggleAction.action?.Disable();
     }
-
-    // private void OnTogglePerformed(InputAction.CallbackContext ctx)
-    // {
-    //     ToggleTablet();
-    // }
+    
 
     private void OnTogglePerformed(InputAction.CallbackContext ctx)
     {
@@ -86,31 +82,6 @@ public class TabletRecallInScene : MonoBehaviour
 
         recallRoutine = StartCoroutine(RecallSafely()); // or your RecallSafely() name
     }
-
-    
-    
-    // private void ToggleTablet()
-    // {
-    //     if (tabletRoot == null || headCamera == null)
-    //         return;
-    //
-    //     isVisible = !isVisible;
-    //
-    //     // Hide tablet
-    //     if (!isVisible)
-    //     {
-    //         tabletRoot.SetActive(false);
-    //         return;
-    //     }
-    //
-    //     // Show tablet and recall it safely
-    //     tabletRoot.SetActive(true);
-    //
-    //     if (recallRoutine != null)
-    //         StopCoroutine(recallRoutine);
-    //
-    //     recallRoutine = StartCoroutine(RecallSafely());
-    // }
 
     private IEnumerator RecallSafely()
     {

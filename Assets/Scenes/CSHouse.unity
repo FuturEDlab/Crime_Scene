@@ -582,6 +582,11 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -0.348
       objectReference: {fileID: 0}
+    - target: {fileID: 1209089711317895220, guid: fe42837d5516330439e6d6a0bbc56175,
+        type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 2891810949405235092, guid: fe42837d5516330439e6d6a0bbc56175,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -1777,7 +1782,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2107565749}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.12}
+  m_LocalPosition: {x: 0, y: 0, z: 1.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1785,7 +1790,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: -0.05}
+  m_AnchoredPosition: {x: 0, y: -0.15}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2107565751
@@ -1808,7 +1813,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press    B    to    exit
+  m_text: Press B to exit
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
   m_sharedMaterial: {fileID: 2147374, guid: 0161d805a3764c089bef00bfe00793f5, type: 2}
@@ -1835,8 +1840,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 0.2
-  m_fontSizeBase: 0.2
+  m_fontSize: 1.5
+  m_fontSizeBase: 1.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1953,12 +1958,12 @@ PrefabInstance:
     - target: {fileID: 5806251860770026422, guid: 6b815e14ccbb2d7469b339871bdbe1cf,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.85
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 5806251860770026422, guid: 6b815e14ccbb2d7469b339871bdbe1cf,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.1
+      value: 1.3
       objectReference: {fileID: 0}
     - target: {fileID: 5806251860770026422, guid: 6b815e14ccbb2d7469b339871bdbe1cf,
         type: 3}
@@ -2010,7 +2015,7 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1206999149445947476, guid: 6b815e14ccbb2d7469b339871bdbe1cf,
         type: 3}
-      insertIndex: -1
+      insertIndex: 0
       addedObject: {fileID: 2107565750}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6b815e14ccbb2d7469b339871bdbe1cf, type: 3}

@@ -1835,7 +1835,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 840431832}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1343572347}
+        m_TargetAssemblyTypeName: iPadSettingsPanel, Assembly-CSharp
+        m_MethodName: ClosePanel
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &840431832
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2261,10 +2273,10 @@ RectTransform:
   - {fileID: 1808376529}
   - {fileID: 1519512916}
   - {fileID: 914644658}
-  - {fileID: 681173183}
   - {fileID: 38955198}
   - {fileID: 355681518}
   - {fileID: 1237748480}
+  - {fileID: 681173183}
   - {fileID: 666733187}
   - {fileID: 2004621200}
   - {fileID: 1769045412}
@@ -2272,8 +2284,8 @@ RectTransform:
   - {fileID: 134716216}
   - {fileID: 1271129443}
   - {fileID: 1320762786}
-  - {fileID: 721869325}
   - {fileID: 840431830}
+  - {fileID: 721869325}
   m_Father: {fileID: 1549216929}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2489,7 +2501,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -200, y: -85}
+  m_AnchoredPosition: {x: -198, y: -85}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1056129023
@@ -3457,6 +3469,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tablet_manager
       objectReference: {fileID: 0}
+    - target: {fileID: 9186553050388833531, guid: fe42837d5516330439e6d6a0bbc56175,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3474,6 +3491,7 @@ GameObject:
   - component: {fileID: 1343572346}
   - component: {fileID: 1343572345}
   - component: {fileID: 1343572344}
+  - component: {fileID: 1343572347}
   m_Layer: 0
   m_Name: ipad
   m_TagString: Untagged
@@ -3490,7 +3508,7 @@ Transform:
   m_GameObject: {fileID: 1343572342}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -189.4, y: 0, z: 0}
+  m_LocalPosition: {x: -189.4, y: 33, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3571,6 +3589,34 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1343572342}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1343572347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1343572342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4b03b85e0a4c8049aa2130005d750e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settingsPanel: {fileID: 967758456}
+  settingsButton: {fileID: 1972499779}
+  teleportToggle: {fileID: 1649262718}
+  speed075Button: {fileID: 1519512917}
+  speed100Button: {fileID: 914644659}
+  speed125Button: {fileID: 681173184}
+  dayButton: {fileID: 355681519}
+  nightButton: {fileID: 1237748481}
+  backgroundSlider: {fileID: 2004621201}
+  narrationSlider: {fileID: 1575450095}
+  soundFXSlider: {fileID: 1320762787}
+  backgroundValueText: {fileID: 1769045413}
+  narrationValueText: {fileID: 134716217}
+  soundFXValueText: {fileID: 721869326}
+  selectedColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  defaultColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
 --- !u!1 &1372002768
 GameObject:
   m_ObjectHideFlags: 0
@@ -4385,7 +4431,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 638014891}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 100
+  m_MaxValue: 1
   m_WholeNumbers: 0
   m_Value: 0
   m_OnValueChanged:
@@ -5280,7 +5326,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 66, y: -83}
+  m_AnchoredPosition: {x: 68, y: -83}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2004621201
@@ -5328,9 +5374,9 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1079124628}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 100
+  m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 0.48
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -5470,6 +5516,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2109234819}
   m_CullTransparentMesh: 1
+--- !u!1 &2126113507
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2126113509}
+  - component: {fileID: 2126113508}
+  m_Layer: 0
+  m_Name: Gamemanger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2126113508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2126113507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f051d105c76672249bcdfa20edaae921, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &2126113509
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2126113507}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -186.85965, y: -10, z: 7}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2134805370
 GameObject:
   m_ObjectHideFlags: 0
@@ -5695,3 +5785,4 @@ SceneRoots:
   - {fileID: 1390173099}
   - {fileID: 1964470638}
   - {fileID: 1662130669}
+  - {fileID: 2126113509}

@@ -43,14 +43,14 @@ namespace BNG {
         /// </summary>
         [Tooltip("0-1 determine how much to consider a grip. Example : 0.75 is holding the grip down 3/4 of the way.")]
         [Range(0.0f, 1f)]
-        public float GripAmount = 0.9f;
+        public float GripAmount = 0.75f; // Changed by Nazim 0.9 -> 0.75
 
         /// <summary>
         /// How much grip considered to release an ob ect (0-1)
         /// </summary>
         [Tooltip("How much grip considered to release an object (0-1). Example : 0.75 is holding the grip down 3/4 of the way")]
         [Range(0.0f, 1f)]
-        public float ReleaseGripAmount = 0.5f;
+        public float ReleaseGripAmount = 0.35f; // Changed by Nazim 0.5 -> 0.35
 
         /// <summary>
         /// How many seconds to check for grab input while Grip is held down. After grip is held down for this long, grip will need to be repressed in order to pick up an object.

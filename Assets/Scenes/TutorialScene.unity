@@ -3114,7 +3114,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &568098176
 Transform:
   m_ObjectHideFlags: 0
@@ -3873,6 +3873,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 18210305733227872, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1328778849893280477, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
         type: 3}
       propertyPath: m_Name
@@ -3927,6 +3932,111 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2847030784205578802, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].time
+      value: 0.1375692
+      objectReference: {fileID: 0}
+    - target: {fileID: 2847030784205578802, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
+      value: 0.9202651
+      objectReference: {fileID: 0}
+    - target: {fileID: 3017932288947611530, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3790811361086330084, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3790811361086330084, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3790811361086330084, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_ProvidesContacts
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984670938172715799, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: LineDistanceModifier
+      value: 4.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984670938172715799, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: HidePointerIfNoObjectsFound
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984670938917931231, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: LineDistanceModifier
+      value: 4.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3984670938917931231, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: HidePointerIfNoObjectsFound
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7467375473010756454, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534968266564196748, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: UseLineRenderer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8341187971045788503, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Text
+      value: o
+      objectReference: {fileID: 0}
+    - target: {fileID: 8341187971045788503, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8787350387409181768, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8787350387409181768, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.b
+      value: 0.3764706
+      objectReference: {fileID: 0}
+    - target: {fileID: 8787350387409181768, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.g
+      value: 0.37754104
+      objectReference: {fileID: 0}
+    - target: {fileID: 8787350387409181768, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.r
+      value: 0.49019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 8787350387409181768, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.colorGradient.m_ColorSpace
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8787350387409181768, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].time
+      value: 0.11423874
+      objectReference: {fileID: 0}
+    - target: {fileID: 8787350387409181768, guid: 9f87e785e9ac9c14bb8dc5718f4378d0,
+        type: 3}
+      propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7398,7 +7508,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95e4e31a66a8c41d8b9ad7ec4ed6867d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skipButton: {fileID: 1660044564}
 --- !u!114 &1660044564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7411,13 +7520,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6884f6f74a1e24b5aa94116086f87a9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  menuSceneName: MenuScene
-  skipUI: {fileID: 1660044558}
-  showAfterSeconds: 0
-  cutscene: {fileID: 0}
-  evaluateToEnd: 1
-  primaryKey: 0
-  secondaryKey: 27
 --- !u!1 &1663983736
 GameObject:
   m_ObjectHideFlags: 0

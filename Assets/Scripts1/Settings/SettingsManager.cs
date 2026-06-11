@@ -1,325 +1,189 @@
+// This script manages all game settings by reading and writing to settings.json.
+// It is shared between the main menu (Issue #12) and the iPad panel (Issue #13)
+// so that any changes made in either place are saved and carried over between sessions.
+// Some functions are stubbed out with TODO comments because the required assets,
+// such as audio and locomotion components, are not yet in the project.
 
-using UnityEngine;
+using System;
 using System.IO;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine;
 
 public class SettingsManager : MonoBehaviour
 {
     public static SettingsManager Instance { get; private set; }
 
-    [Header("Settings Data")]
-    private SettingsData settings;
-    private string settingsFilePath;
-
-    [Header("UI References")]
-    public GameObject settingsPanel;
-    public Button settingsButton;
-    public Button closeSettingsButton;
-
-    [Header("Movement Type Buttons")]
-    public Button teleportingButton;
-    public Button continuousButton;
-
-    [Header("Movement Speed Buttons")]
-    public Button speed075Button;
-    public Button speed100Button;
-    public Button speed125Button;
-
-    [Header("Time of Day Buttons")]
-    public Button dayButton;
-    public Button nightButton;
-
-    [Header("Volume Sliders")]
-    public Slider backgroundVolumeSlider;
-    public Slider narrationVolumeSlider;
-    public Slider soundFXVolumeSlider;
-
-    [Header("Volume Text")]
-    public TextMeshProUGUI backgroundVolumeText;
-    public TextMeshProUGUI narrationVolumeText;
-    public TextMeshProUGUI soundFXVolumeText;
-
-    [Header("Scene References")]
-    public Light directionalLight;
-
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-
-        settingsFilePath = Path.Combine(Application.persistentDataPath, "vr_settings.json");
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
         LoadSettings();
     }
 
-    private void Start()
+    private static string SettingsFilePath =>
+        Path.Combine(Application.persistentDataPath, "settings.json");
+
+    [Serializable]
+    public class MovementSettings
     {
-        SetupUIListeners();
-        ApplyAllSettings();
-        UpdateUI();
-        
-        if (settingsPanel != null)
-            settingsPanel.SetActive(false);
+        public string type = "continuous";
+        public float speed = 1.0f;
     }
 
-    private void SetupUIListeners()
+    [Serializable]
+    public class EnvironmentSettings
     {
-        if (settingsButton != null)
-            settingsButton.onClick.AddListener(OpenSettings);
-        
-        if (closeSettingsButton != null)
-            closeSettingsButton.onClick.AddListener(CloseSettings);
-
-        if (teleportingButton != null)
-            teleportingButton.onClick.AddListener(() => UpdateMovementType("teleporting"));
-        
-        if (continuousButton != null)
-            continuousButton.onClick.AddListener(() => UpdateMovementType("continuous"));
-
-        if (speed075Button != null)
-            speed075Button.onClick.AddListener(() => UpdateMovementSpeed(0.75f));
-        
-        if (speed100Button != null)
-            speed100Button.onClick.AddListener(() => UpdateMovementSpeed(1.0f));
-        
-        if (speed125Button != null)
-            speed125Button.onClick.AddListener(() => UpdateMovementSpeed(1.25f));
-
-        if (dayButton != null)
-            dayButton.onClick.AddListener(() => UpdateTimeOfDay("day"));
-        
-        if (nightButton != null)
-            nightButton.onClick.AddListener(() => UpdateTimeOfDay("night"));
-
-        if (backgroundVolumeSlider != null)
-            backgroundVolumeSlider.onValueChanged.AddListener(UpdateBackgroundVolume);
-        
-        if (narrationVolumeSlider != null)
-            narrationVolumeSlider.onValueChanged.AddListener(UpdateNarrationVolume);
-        
-        if (soundFXVolumeSlider != null)
-            soundFXVolumeSlider.onValueChanged.AddListener(UpdateSoundFXVolume);
+        public string timeOfDay = "day";
     }
 
-    public void SaveSettings()
+    [Serializable]
+    public class AudioSettings
     {
-        try
-        {
-            string json = JsonUtility.ToJson(settings, true);
-            File.WriteAllText(settingsFilePath, json);
-            Debug.Log($"Settings saved to: {settingsFilePath}");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Error saving settings: {e.Message}");
-        }
+        public float backgroundVolume = 1.0f;
+        public float narrationVolume = 1.0f;
+        public float soundFXVolume = 1.0f;
     }
+
+    [Serializable]
+    public class AccessibilitySettings
+    {
+        public bool subtitles = false;
+        public string colorblindMode = "none";
+    }
+
+    [Serializable]
+    public class SettingsData
+    {
+        public MovementSettings movement = new MovementSettings();
+        public EnvironmentSettings environment = new EnvironmentSettings();
+        public AudioSettings audio = new AudioSettings();
+        public AccessibilitySettings accessibility = new AccessibilitySettings();
+    }
+
+    [Serializable]
+    private class SettingsWrapper
+    {
+        public SettingsData settings = new SettingsData();
+        public MetaData meta = new MetaData();
+    }
+
+    [Serializable]
+    private class MetaData
+    {
+        public string lastUpdatedFrom = "mainMenu";
+        public string lastUpdated = "";
+    }
+
+    public SettingsData CurrentSettings => _wrapper.settings;
+    private SettingsWrapper _wrapper = new SettingsWrapper();
 
     public void LoadSettings()
     {
-        try
+        if (File.Exists(SettingsFilePath))
         {
-            if (File.Exists(settingsFilePath))
+            try
             {
-                string json = File.ReadAllText(settingsFilePath);
-                settings = JsonUtility.FromJson<SettingsData>(json);
-                Debug.Log("Settings loaded successfully");
+                string json = File.ReadAllText(SettingsFilePath);
+                _wrapper = JsonUtility.FromJson<SettingsWrapper>(json);
+                Debug.Log($"[SettingsManager] Settings loaded from {SettingsFilePath}");
             }
-            else
+            catch (Exception e)
             {
-                Debug.Log("No settings file found, using defaults");
-                settings = new SettingsData();
-                SaveSettings();
+                Debug.LogWarning($"[SettingsManager] Failed to parse settings file, using defaults. Error: {e.Message}");
+                _wrapper = new SettingsWrapper();
+                SaveSettings("system");
             }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Error loading settings: {e.Message}");
-            settings = new SettingsData();
-        }
-    }
-
-    public void UpdateMovementType(string movementType)
-    {
-        settings.movementType = movementType;
-        ApplyMovementType();
-        SaveSettings();
-        UpdateUI();
-    }
-
-    private void ApplyMovementType()
-    {
-        Debug.Log($"Movement type: {settings.movementType}");
-        // TODO: Connect to VR locomotion
-    }
-
-    public void UpdateMovementSpeed(float speed)
-    {
-        settings.movementSpeed = speed;
-        ApplyMovementSpeed();
-        SaveSettings();
-        UpdateUI();
-    }
-
-    private void ApplyMovementSpeed()
-    {
-        Debug.Log($"Movement speed: {settings.movementSpeed}x");
-        // TODO: Connect to movement controller
-    }
-
-    public void UpdateTimeOfDay(string timeOfDay)
-    {
-        settings.timeOfDay = timeOfDay;
-        ApplyTimeOfDay();
-        SaveSettings();
-        UpdateUI();
-    }
-
-    private void ApplyTimeOfDay()
-    {
-        if (settings.timeOfDay == "night")
-        {
-            if (directionalLight != null)
-            {
-                directionalLight.intensity = 0.3f;
-                directionalLight.color = new Color(0.6f, 0.7f, 1f);
-            }
-            RenderSettings.fogColor = new Color(0.1f, 0.1f, 0.2f);
         }
         else
         {
-            if (directionalLight != null)
-            {
-                directionalLight.intensity = 1.0f;
-                directionalLight.color = Color.white;
-            }
-            RenderSettings.fogColor = new Color(0.5f, 0.6f, 0.7f);
+            Debug.Log("[SettingsManager] No settings file found — writing defaults.");
+            SaveSettings("system");
         }
     }
 
-    public void UpdateBackgroundVolume(float volume)
+    public void SaveSettings(string source = "iPad")
     {
-        settings.soundVolume.background = volume;
-        ApplyBackgroundVolume();
-        SaveSettings();
-        
-        if (backgroundVolumeText != null)
-            backgroundVolumeText.text = $"{Mathf.RoundToInt(volume * 100)}%";
-    }
-
-    private void ApplyBackgroundVolume()
-    {
-        Debug.Log($"Background volume: {settings.soundVolume.background * 100}%");
-        // TODO: Connect to audio
-    }
-
-    public void UpdateNarrationVolume(float volume)
-    {
-        settings.soundVolume.narration = volume;
-        ApplyNarrationVolume();
-        SaveSettings();
-        
-        if (narrationVolumeText != null)
-            narrationVolumeText.text = $"{Mathf.RoundToInt(volume * 100)}%";
-    }
-
-    private void ApplyNarrationVolume()
-    {
-        Debug.Log($"Narration volume: {settings.soundVolume.narration * 100}%");
-        // TODO: Connect to audio
-    }
-
-    public void UpdateSoundFXVolume(float volume)
-    {
-        settings.soundVolume.soundFX = volume;
-        ApplySoundFXVolume();
-        SaveSettings();
-        
-        if (soundFXVolumeText != null)
-            soundFXVolumeText.text = $"{Mathf.RoundToInt(volume * 100)}%";
-    }
-
-    private void ApplySoundFXVolume()
-    {
-        Debug.Log($"Sound FX volume: {settings.soundVolume.soundFX * 100}%");
-        // TODO: Connect to audio
-    }
-
-    private void ApplyAllSettings()
-    {
-        ApplyMovementType();
-        ApplyMovementSpeed();
-        ApplyTimeOfDay();
-        ApplyBackgroundVolume();
-        ApplyNarrationVolume();
-        ApplySoundFXVolume();
-    }
-
-    private void UpdateUI()
-    {
-        UpdateButtonHighlight(teleportingButton, settings.movementType == "teleporting");
-        UpdateButtonHighlight(continuousButton, settings.movementType == "continuous");
-
-        UpdateButtonHighlight(speed075Button, Mathf.Approximately(settings.movementSpeed, 0.75f));
-        UpdateButtonHighlight(speed100Button, Mathf.Approximately(settings.movementSpeed, 1.0f));
-        UpdateButtonHighlight(speed125Button, Mathf.Approximately(settings.movementSpeed, 1.25f));
-
-        UpdateButtonHighlight(dayButton, settings.timeOfDay == "day");
-        UpdateButtonHighlight(nightButton, settings.timeOfDay == "night");
-
-        if (backgroundVolumeSlider != null)
+        _wrapper.meta.lastUpdatedFrom = source;
+        _wrapper.meta.lastUpdated = DateTime.UtcNow.ToString("o");
+        try
         {
-            backgroundVolumeSlider.value = settings.soundVolume.background;
-            if (backgroundVolumeText != null)
-                backgroundVolumeText.text = $"{Mathf.RoundToInt(settings.soundVolume.background * 100)}%";
+            string json = JsonUtility.ToJson(_wrapper, prettyPrint: true);
+            File.WriteAllText(SettingsFilePath, json);
+            Debug.Log($"[SettingsManager] Settings saved ({source}).");
         }
-
-        if (narrationVolumeSlider != null)
+        catch (Exception e)
         {
-            narrationVolumeSlider.value = settings.soundVolume.narration;
-            if (narrationVolumeText != null)
-                narrationVolumeText.text = $"{Mathf.RoundToInt(settings.soundVolume.narration * 100)}%";
+            Debug.LogError($"[SettingsManager] Could not save settings: {e.Message}");
         }
+    }
 
-        if (soundFXVolumeSlider != null)
+    public void SetMovementType(bool useTeleport)
+    {
+        CurrentSettings.movement.type = useTeleport ? "teleport" : "continuous";
+        // TODO: Swap active locomotion provider components.
+        SaveSettings("iPad");
+    }
+
+    public void SetMovementSpeed(float speedMultiplier)
+    {
+        float[] validSpeeds = { 0.75f, 1.0f, 1.25f };
+        bool isValid = Array.Exists(validSpeeds, s => Mathf.Approximately(s, speedMultiplier));
+        if (!isValid)
         {
-            soundFXVolumeSlider.value = settings.soundVolume.soundFX;
-            if (soundFXVolumeText != null)
-                soundFXVolumeText.text = $"{Mathf.RoundToInt(settings.soundVolume.soundFX * 100)}%";
+            Debug.LogWarning($"[SettingsManager] Invalid speed {speedMultiplier}.");
+            return;
         }
+        CurrentSettings.movement.speed = speedMultiplier;
+        // TODO: Apply multiplier to the ContinuousMoveProvider.
+        SaveSettings("iPad");
     }
 
-    private void UpdateButtonHighlight(Button button, bool isActive)
+    public void SetTimeOfDay(bool isDay)
     {
-        if (button == null) return;
-
-        ColorBlock colors = button.colors;
-        colors.normalColor = isActive ? new Color(0.2f, 0.5f, 1f) : new Color(0.3f, 0.3f, 0.3f);
-        button.colors = colors;
+        CurrentSettings.environment.timeOfDay = isDay ? "day" : "night";
+        // TODO: Swap skybox and adjust directional light.
+        SaveSettings("iPad");
     }
 
-    public void OpenSettings()
+    public void SetBackgroundVolume(float volume)
     {
-        if (settingsPanel != null)
-            settingsPanel.SetActive(true);
+        volume = Mathf.Clamp01(volume);
+        CurrentSettings.audio.backgroundVolume = volume;
+        // TODO: No background audio assets exist yet.
+        SaveSettings("iPad");
     }
 
-    public void CloseSettings()
+    public void SetNarrationVolume(float volume)
     {
-        if (settingsPanel != null)
-            settingsPanel.SetActive(false);
+        volume = Mathf.Clamp01(volume);
+        CurrentSettings.audio.narrationVolume = volume;
+        // TODO: No narration audio assets exist yet.
+        SaveSettings("iPad");
     }
 
-    public SettingsData GetSettings()
+    public void SetSoundFXVolume(float volume)
     {
-        return settings;
+        volume = Mathf.Clamp01(volume);
+        CurrentSettings.audio.soundFXVolume = volume;
+        // TODO: No SFX audio assets exist yet.
+        SaveSettings("iPad");
+    }
+
+    public void SetSubtitles(bool enabled)
+    {
+        CurrentSettings.accessibility.subtitles = enabled;
+        // TODO: Subtitles feature coming in a separate issue.
+        SaveSettings("iPad");
+    }
+
+    public void SetColorblindMode(string mode)
+    {
+        CurrentSettings.accessibility.colorblindMode = mode;
+        // TODO: Colorblind mode coming in a separate issue.
+        SaveSettings("iPad");
     }
 }

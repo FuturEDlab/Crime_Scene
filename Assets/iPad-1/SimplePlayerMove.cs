@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SimplePlayerMove2 : MonoBehaviour
+public class SimplePlayerMove : MonoBehaviour
 {
     public float speed = 3f;
 

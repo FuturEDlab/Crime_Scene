@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class SimplePlayerMove : MonoBehaviour
+public class PlayerMove : MonoBehaviour
 {
     public float moveSpeed = 4f;
     public float lookSpeed = 2f;

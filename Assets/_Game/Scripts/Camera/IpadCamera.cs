@@ -34,6 +34,15 @@ public class IpadCamera : MonoBehaviour
              "own screen (the usual cause of a white photo / blank viewfinder).")]
     [SerializeField] private bool excludeUILayerFromCapture = true;
 
+    [Tooltip("Remove the built-in TransparentFX layer so transparent effects " +
+             "don't appear in photos or the live viewfinder.")]
+    [SerializeField] private bool excludeTransparentFXFromCapture = true;
+
+    [Tooltip("Any extra layers to hide from the camera (custom VFX, highlights, " +
+             "outlines, etc.). These are stripped from the capture in addition " +
+             "to UI and TransparentFX above.")]
+    [SerializeField] private LayerMask additionalExcludedLayers;
+
     [Header("Follow (recommended)")]
     [Tooltip("Transform the camera should stick to every frame - assign the part " +
              "of the tablet that physically moves when grabbed (the object with " +
@@ -52,9 +61,12 @@ public class IpadCamera : MonoBehaviour
     [Tooltip("RawImage on the Camera screen that shows the live camera feed.")]
     [SerializeField] private RawImage viewfinder;
 
-    [Tooltip("Optional flash/feedback object briefly enabled when a photo is taken.")]
+    [Tooltip("Optional full-screen overlay briefly shown when a photo is taken. " +
+             "Add a CanvasGroup to it for a smooth fade; otherwise it just blinks on/off.")]
     [SerializeField] private GameObject shutterFlash;
-    [SerializeField] private float shutterFlashSeconds = 0.12f;
+    [SerializeField] private float shutterFlashSeconds = 0.2f;
+
+    private CanvasGroup _flashGroup;
 
     [Header("Key Item Detection")]
     [Tooltip("Max distance (metres) at which a key item still counts as photographed.")]
@@ -117,6 +129,11 @@ public class IpadCamera : MonoBehaviour
         if (_flashTimer > 0f)
         {
             _flashTimer -= Time.deltaTime;
+
+            // Fade the overlay out over its lifetime for a smooth flash.
+            if (_flashGroup != null)
+                _flashGroup.alpha = Mathf.Clamp01(_flashTimer / Mathf.Max(0.0001f, shutterFlashSeconds));
+
             if (_flashTimer <= 0f && shutterFlash != null)
                 shutterFlash.SetActive(false);
         }
@@ -155,11 +172,14 @@ public class IpadCamera : MonoBehaviour
 
         // Never film the iPad's own World-Space UI canvas.
         if (excludeUILayerFromCapture)
-        {
-            int uiLayer = LayerMask.NameToLayer("UI");
-            if (uiLayer >= 0)
-                captureCamera.cullingMask &= ~(1 << uiLayer);
-        }
+            ExcludeLayer("UI");
+
+        // Keep transparent effects out of photos / the viewfinder.
+        if (excludeTransparentFXFromCapture)
+            ExcludeLayer("TransparentFX");
+
+        // Strip any extra layers the designer flagged (custom VFX, etc.).
+        captureCamera.cullingMask &= ~additionalExcludedLayers.value;
 
         // Render monoscopically to the texture. Without this an XR build (Quest 3)
         // may try to render this camera in stereo, which breaks the preview.
@@ -183,9 +203,34 @@ public class IpadCamera : MonoBehaviour
         }
 
         if (verboseLogging)
-            Debug.Log($"[IpadCamera] Camera ready. cullingMask={captureCamera.cullingMask}, " +
+            Debug.Log($"[IpadCamera] Camera ready. Rendering layers: [{GetIncludedLayerNames()}]. " +
                       $"clearFlags={captureCamera.clearFlags}, fov={captureCamera.fieldOfView}, " +
                       $"pos={captureCamera.transform.position}.");
+    }
+
+    // Lists every layer name the capture camera is currently set to render, so
+    // you can see which layer an unwanted effect actually lives on.
+    private string GetIncludedLayerNames()
+    {
+        var names = new List<string>();
+        for (int i = 0; i < 32; i++)
+        {
+            if ((captureCamera.cullingMask & (1 << i)) == 0)
+                continue;
+
+            string n = LayerMask.LayerToName(i);
+            if (!string.IsNullOrEmpty(n))
+                names.Add($"{i}:{n}");
+        }
+        return string.Join(", ", names);
+    }
+
+    // Removes a named layer from the capture camera's culling mask (if it exists).
+    private void ExcludeLayer(string layerName)
+    {
+        int layer = LayerMask.NameToLayer(layerName);
+        if (layer >= 0)
+            captureCamera.cullingMask &= ~(1 << layer);
     }
 
     // Hook this to the shutter button's OnClick.
@@ -289,7 +334,13 @@ public class IpadCamera : MonoBehaviour
         if (shutterFlash == null)
             return;
 
+        if (_flashGroup == null)
+            _flashGroup = shutterFlash.GetComponent<CanvasGroup>();
+
         shutterFlash.SetActive(true);
+        if (_flashGroup != null)
+            _flashGroup.alpha = 1f;
+
         _flashTimer = shutterFlashSeconds;
     }
 }

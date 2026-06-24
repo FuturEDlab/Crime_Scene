@@ -4,8 +4,10 @@ using UnityEngine;
 
 // In-memory store for every photo the player takes during the current session.
 //
-// Photos are deliberately kept in memory only and the list is cleared on Awake,
-// so a new session never shows photos taken in a previous one.
+// Photos are kept in memory only and survive scene loads (e.g. walking outside
+// then back inside) via DontDestroyOnLoad. The list is cleared exactly ONCE per
+// session - when the first instance is created - so a new playthrough never
+// shows photos from a previous one, but moving between scenes keeps them.
 public class PhotoLibrary : MonoBehaviour
 {
     public static PhotoLibrary Instance { get; private set; }
@@ -20,14 +22,20 @@ public class PhotoLibrary : MonoBehaviour
 
     private void Awake()
     {
+        // A second copy spawned by a newly loaded scene: destroy the duplicate
+        // GameObject and keep the original (which still holds all the photos).
         if (Instance != null && Instance != this)
         {
-            Destroy(this);
+            Destroy(gameObject);
             return;
         }
-        Instance = this;
 
-        // New session => no leftover photos from any previous run.
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // Fresh session start => no leftover photos from any previous run.
+        // This only runs for the first instance, so it does NOT fire on scene
+        // changes within the same session.
         ClearInternal(notify: false);
     }
 

@@ -41,18 +41,23 @@ public class EvidenceGradingManager : MonoBehaviour
 
     private void Awake()
     {
+        // Persist across scene loads so found evidence isn't lost when the
+        // player moves between scenes (outside <-> inside). A duplicate spawned
+        // by a newly loaded scene destroys itself and keeps the original state.
         if (Instance != null && Instance != this)
         {
-            Destroy(this);
+            Destroy(gameObject);
             return;
         }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
     {
         // Order-independent registration: pick up any key items already in the
-        // scene that may have enabled before this manager woke up.
+        // scene that may have enabled before this manager woke up. (Items in
+        // scenes loaded later register themselves via KeyEvidenceItem.OnEnable.)
         KeyEvidenceItem[] items =
 #if UNITY_2023_1_OR_NEWER
             FindObjectsByType<KeyEvidenceItem>(FindObjectsInactive.Include, FindObjectsSortMode.None);

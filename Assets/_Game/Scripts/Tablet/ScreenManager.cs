@@ -15,6 +15,10 @@ public class ScreenManager : MonoBehaviour
     [SerializeField] private GameObject notebookScreen;
     [SerializeField] private GameObject cameraScreen;
 
+    // Optional: the GameObject holding the iPad's capture Camera (with IpadCamera).
+    // Kept disabled unless the Camera app is open so it doesn't render every frame.
+    [SerializeField] private GameObject cameraRig;
+
     // Unity automatically calls Start() once when the object becomes active.
     void Start()
     {
@@ -31,6 +35,10 @@ public class ScreenManager : MonoBehaviour
         evidenceScreen.SetActive(false);
         notebookScreen.SetActive(false);
         cameraScreen.SetActive(false);
+
+        // Stop the iPad camera rendering whenever we leave the Camera app.
+        if (cameraRig != null)
+            cameraRig.SetActive(false);
     }
 
     // Show the Home screen
@@ -71,6 +79,10 @@ public class ScreenManager : MonoBehaviour
     {
         HideAll();
         cameraScreen.SetActive(true);
+
+        // Power the iPad camera on only while the Camera app is open.
+        if (cameraRig != null)
+            cameraRig.SetActive(true);
     }
     
     

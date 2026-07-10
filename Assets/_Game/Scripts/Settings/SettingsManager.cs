@@ -16,12 +16,29 @@ public class SettingsManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            // Destroy ONLY this component, never the whole GameObject. This
+            // manager rides on the Tablet_manager prefab root (next to
+            // PhotoLibrary / EvidenceGradingManager); if a SettingsManager from a
+            // previous scene (e.g. the main menu) already persists, destroying
+            // the GameObject here would delete the entire tablet.
+            Destroy(this);
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+
+        // DontDestroyOnLoad only works on root objects. On the tablet the root
+        // already persists via TabletPersist, so this is just for standalone use
+        // (e.g. a SettingsManager object in the main menu scene).
+        if (transform.parent == null)
+            DontDestroyOnLoad(gameObject);
+
         LoadSettings();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private static string SettingsFilePath =>
@@ -81,6 +98,12 @@ public class SettingsManager : MonoBehaviour
     public SettingsData CurrentSettings => _wrapper.settings;
     private SettingsWrapper _wrapper = new SettingsWrapper();
 
+    // Raised after settings are loaded OR changed. Scene-side components
+    // (SettingsApplier) subscribe to this to push the new values onto the actual
+    // world objects — lights, locomotion, audio — that this persistent singleton
+    // cannot hold references to across scene loads.
+    public event Action OnSettingsChanged;
+
     public void LoadSettings()
     {
         if (File.Exists(SettingsFilePath))
@@ -103,6 +126,8 @@ public class SettingsManager : MonoBehaviour
             Debug.Log("[SettingsManager] No settings file found — writing defaults.");
             SaveSettings("system");
         }
+
+        OnSettingsChanged?.Invoke();
     }
 
     public void SaveSettings(string source = "iPad")
@@ -119,12 +144,21 @@ public class SettingsManager : MonoBehaviour
         {
             Debug.LogError($"[SettingsManager] Could not save settings: {e.Message}");
         }
+
+        // Whoever changed a value (main menu or iPad) writes the shared file, so
+        // notify listeners in the current scene to re-apply immediately.
+        OnSettingsChanged?.Invoke();
     }
+
+    // ----- Setters -----------------------------------------------------------
+    // Each setter only edits the shared data model and persists it. The actual
+    // in-world effect is applied by SettingsApplier, which listens to
+    // OnSettingsChanged. This keeps SettingsManager scene-independent so the same
+    // instance survives from the main menu into the experience.
 
     public void SetMovementType(bool useTeleport)
     {
         CurrentSettings.movement.type = useTeleport ? "teleport" : "continuous";
-        // TODO: Swap active locomotion provider components.
         SaveSettings("iPad");
     }
 
@@ -138,38 +172,30 @@ public class SettingsManager : MonoBehaviour
             return;
         }
         CurrentSettings.movement.speed = speedMultiplier;
-        // TODO: Apply multiplier to the ContinuousMoveProvider.
         SaveSettings("iPad");
     }
 
     public void SetTimeOfDay(bool isDay)
     {
         CurrentSettings.environment.timeOfDay = isDay ? "day" : "night";
-        // TODO: Swap skybox and adjust directional light.
         SaveSettings("iPad");
     }
 
     public void SetBackgroundVolume(float volume)
     {
-        volume = Mathf.Clamp01(volume);
-        CurrentSettings.audio.backgroundVolume = volume;
-        // TODO: No background audio assets exist yet.
+        CurrentSettings.audio.backgroundVolume = Mathf.Clamp01(volume);
         SaveSettings("iPad");
     }
 
     public void SetNarrationVolume(float volume)
     {
-        volume = Mathf.Clamp01(volume);
-        CurrentSettings.audio.narrationVolume = volume;
-        // TODO: No narration audio assets exist yet.
+        CurrentSettings.audio.narrationVolume = Mathf.Clamp01(volume);
         SaveSettings("iPad");
     }
 
     public void SetSoundFXVolume(float volume)
     {
-        volume = Mathf.Clamp01(volume);
-        CurrentSettings.audio.soundFXVolume = volume;
-        // TODO: No SFX audio assets exist yet.
+        CurrentSettings.audio.soundFXVolume = Mathf.Clamp01(volume);
         SaveSettings("iPad");
     }
 

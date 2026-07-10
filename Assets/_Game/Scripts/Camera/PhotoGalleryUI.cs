@@ -36,6 +36,11 @@ public class PhotoGalleryUI : MonoBehaviour, IBeginDragHandler, IEndDragHandler
     [Tooltip("Optional badge enabled when the shown photo contains key evidence.")]
     [SerializeField] private GameObject evidenceBadge;
 
+    [Tooltip("Colour forced onto the badge text so it reads on ANY photo. The " +
+             "prefab's authored colour was black, which disappears on photos " +
+             "taken at night.")]
+    [SerializeField] private Color evidenceBadgeColor = new Color(1f, 0.72f, 0f); // amber
+
     [Header("Swipe")]
     [Tooltip("Horizontal drag distance (pixels) required to flip to another photo.")]
     [SerializeField] private float swipeThreshold = 60f;
@@ -47,6 +52,20 @@ public class PhotoGalleryUI : MonoBehaviour, IBeginDragHandler, IEndDragHandler
     {
         if (emptyStateLabel != null)
             emptyStateLabel.text = EmptyMessage;
+
+        if (evidenceBadge != null)
+        {
+            // Readable on any photo: bold amber instead of the authored black
+            // (invisible on night shots), and drawn above its siblings so the
+            // photo can never cover it.
+            TMP_Text label = evidenceBadge.GetComponentInChildren<TMP_Text>(true);
+            if (label != null)
+            {
+                label.color = evidenceBadgeColor;
+                label.fontStyle = FontStyles.Bold;
+            }
+            evidenceBadge.transform.SetAsLastSibling();
+        }
     }
 
     private void OnEnable()

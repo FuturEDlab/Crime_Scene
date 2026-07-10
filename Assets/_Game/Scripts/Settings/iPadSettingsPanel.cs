@@ -1,5 +1,13 @@
-// This is a work in progress pushed to the feature/ipad-settings-panel branch for safe keeping.
-// The UI has been built but the inspector references and script wiring are not yet complete.
+// Controls the iPad's Settings screen. Every control writes through
+// SettingsManager, which persists to the shared settings.json (the same file the
+// main menu writes), so a change made here overrides what was set in the menu.
+//
+// Screen visibility is normally owned by the tablet's ScreenManager (ShowSettings()
+// activates this screen, like the Camera/Evidence/Notebook apps). In that setup
+// leave 'Settings Panel' and 'Settings Button' unassigned — this component just
+// wires the controls and refreshes their values from the saved settings each time
+// the screen is shown (OnEnable). The optional Panel/Button fields let it also run
+// as a self-contained pop-up if ever needed outside the ScreenManager flow.
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +15,7 @@ using TMPro;
 
 public class iPadSettingsPanel : MonoBehaviour
 {
-    [Header("Panel")]
+    [Header("Panel (optional — leave empty if ScreenManager owns visibility)")]
     [SerializeField] private GameObject settingsPanel;
     [SerializeField] private Button settingsButton;
 
@@ -37,55 +45,89 @@ public class iPadSettingsPanel : MonoBehaviour
     [SerializeField] private Color selectedColor = new Color(0.2f, 0.6f, 1f);
     [SerializeField] private Color defaultColor = new Color(0.85f, 0.85f, 0.85f);
 
-    private void Start()
+    private bool _wired;
+
+    private void Awake()
     {
-        settingsButton.onClick.AddListener(OpenPanel);
-        teleportToggle.onValueChanged.AddListener(OnMovementTypeChanged);
-        speed075Button.onClick.AddListener(() => OnSpeedSelected(0.75f));
-        speed100Button.onClick.AddListener(() => OnSpeedSelected(1.0f));
-        speed125Button.onClick.AddListener(() => OnSpeedSelected(1.25f));
-        dayButton.onClick.AddListener(() => OnTimeOfDaySelected(true));
-        nightButton.onClick.AddListener(() => OnTimeOfDaySelected(false));
+        WireControls();
+    }
 
-        backgroundSlider.minValue = 0f;
-        backgroundSlider.maxValue = 1f;
-        narrationSlider.minValue = 0f;
-        narrationSlider.maxValue = 1f;
-        soundFXSlider.minValue = 0f;
-        soundFXSlider.maxValue = 1f;
+    private void OnEnable()
+    {
+        // The screen just became visible (ScreenManager.ShowSettings, or the
+        // optional pop-up) — refresh every control from the saved settings.
+        PopulateUIFromSettings();
+    }
 
-        backgroundSlider.onValueChanged.AddListener(OnBackgroundVolumeChanged);
-        narrationSlider.onValueChanged.AddListener(OnNarrationVolumeChanged);
-        soundFXSlider.onValueChanged.AddListener(OnSoundFXVolumeChanged);
+    // Hooks up all control callbacks exactly once.
+    private void WireControls()
+    {
+        if (_wired)
+            return;
+        _wired = true;
 
-        settingsPanel.SetActive(false);
+        if (settingsButton != null) settingsButton.onClick.AddListener(OpenPanel);
+        if (teleportToggle != null) teleportToggle.onValueChanged.AddListener(OnMovementTypeChanged);
+        if (speed075Button != null) speed075Button.onClick.AddListener(() => OnSpeedSelected(0.75f));
+        if (speed100Button != null) speed100Button.onClick.AddListener(() => OnSpeedSelected(1.0f));
+        if (speed125Button != null) speed125Button.onClick.AddListener(() => OnSpeedSelected(1.25f));
+        if (dayButton != null) dayButton.onClick.AddListener(() => OnTimeOfDaySelected(true));
+        if (nightButton != null) nightButton.onClick.AddListener(() => OnTimeOfDaySelected(false));
+
+        SetupSlider(backgroundSlider, OnBackgroundVolumeChanged);
+        SetupSlider(narrationSlider, OnNarrationVolumeChanged);
+        SetupSlider(soundFXSlider, OnSoundFXVolumeChanged);
+
+        // Only self-manage visibility when acting as a standalone pop-up.
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+    }
+
+    private void SetupSlider(Slider slider, UnityEngine.Events.UnityAction<float> callback)
+    {
+        if (slider == null)
+            return;
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.onValueChanged.AddListener(callback);
     }
 
     private void OpenPanel()
     {
-        settingsPanel.SetActive(true);
+        if (settingsPanel != null)
+            settingsPanel.SetActive(true);
         PopulateUIFromSettings();
     }
 
     public void ClosePanel()
     {
-        settingsPanel.SetActive(false);
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
     }
 
     private void PopulateUIFromSettings()
     {
+        if (SettingsManager.Instance == null)
+        {
+            Debug.LogWarning("[iPadSettingsPanel] No SettingsManager in scene — controls not populated.");
+            return;
+        }
+
         var s = SettingsManager.Instance.CurrentSettings;
 
-        teleportToggle.onValueChanged.RemoveAllListeners();
-        teleportToggle.isOn = s.movement.type == "teleport";
-        teleportToggle.onValueChanged.AddListener(OnMovementTypeChanged);
+        if (teleportToggle != null)
+        {
+            teleportToggle.onValueChanged.RemoveListener(OnMovementTypeChanged);
+            teleportToggle.isOn = s.movement.type == "teleport";
+            teleportToggle.onValueChanged.AddListener(OnMovementTypeChanged);
+        }
 
         HighlightSpeedButton(s.movement.speed);
         HighlightTimeButton(s.environment.timeOfDay == "day");
 
-        backgroundSlider.SetValueWithoutNotify(s.audio.backgroundVolume);
-        narrationSlider.SetValueWithoutNotify(s.audio.narrationVolume);
-        soundFXSlider.SetValueWithoutNotify(s.audio.soundFXVolume);
+        if (backgroundSlider != null) backgroundSlider.SetValueWithoutNotify(s.audio.backgroundVolume);
+        if (narrationSlider != null) narrationSlider.SetValueWithoutNotify(s.audio.narrationVolume);
+        if (soundFXSlider != null) soundFXSlider.SetValueWithoutNotify(s.audio.soundFXVolume);
 
         UpdateVolumeLabel(backgroundValueText, s.audio.backgroundVolume);
         UpdateVolumeLabel(narrationValueText, s.audio.narrationVolume);
@@ -142,6 +184,8 @@ public class iPadSettingsPanel : MonoBehaviour
 
     private void SetButtonColor(Button button, bool isSelected)
     {
+        if (button == null)
+            return;
         var img = button.GetComponent<Image>();
         if (img != null)
             img.color = isSelected ? selectedColor : defaultColor;

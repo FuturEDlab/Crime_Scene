@@ -10,6 +10,7 @@
 // as a self-contained pop-up if ever needed outside the ScreenManager flow.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using TMPro;
 
@@ -22,10 +23,17 @@ public class iPadSettingsPanel : MonoBehaviour
     [Header("Movement Type")]
     [SerializeField] private Toggle teleportToggle;
 
-    [Header("Movement Speed")]
-    [SerializeField] private Button speed075Button;
-    [SerializeField] private Button speed100Button;
-    [SerializeField] private Button speed125Button;
+    // Three speed buttons in slow / normal / fast order. Named after their role,
+    // not a fixed number, so changing SettingsManager.SpeedOptions relabels them
+    // without renaming anything. FormerlySerializedAs keeps the prefab's existing
+    // references (from when these were 0.75/1.0/1.25) wired after the rename.
+    [Header("Movement Speed (slow / normal / fast)")]
+    [FormerlySerializedAs("speed075Button")]
+    [SerializeField] private Button speedSlowButton;
+    [FormerlySerializedAs("speed100Button")]
+    [SerializeField] private Button speedNormalButton;
+    [FormerlySerializedAs("speed125Button")]
+    [SerializeField] private Button speedFastButton;
 
     [Header("Environment")]
     [SerializeField] private Button dayButton;
@@ -68,9 +76,7 @@ public class iPadSettingsPanel : MonoBehaviour
 
         if (settingsButton != null) settingsButton.onClick.AddListener(OpenPanel);
         if (teleportToggle != null) teleportToggle.onValueChanged.AddListener(OnMovementTypeChanged);
-        if (speed075Button != null) speed075Button.onClick.AddListener(() => OnSpeedSelected(0.75f));
-        if (speed100Button != null) speed100Button.onClick.AddListener(() => OnSpeedSelected(1.0f));
-        if (speed125Button != null) speed125Button.onClick.AddListener(() => OnSpeedSelected(1.25f));
+        WireSpeedButtons();
         if (dayButton != null) dayButton.onClick.AddListener(() => OnTimeOfDaySelected(true));
         if (nightButton != null) nightButton.onClick.AddListener(() => OnTimeOfDaySelected(false));
 
@@ -82,6 +88,44 @@ public class iPadSettingsPanel : MonoBehaviour
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
     }
+
+    // The three buttons in slow/normal/fast order, matching SettingsManager.SpeedOptions.
+    private Button[] SpeedButtons => new[] { speedSlowButton, speedNormalButton, speedFastButton };
+
+    // Points each button at its speed and rewrites its caption to match. The
+    // caption is set from code (not the prefab) so the numbers on screen can
+    // never drift out of sync with the values the buttons actually apply.
+    private void WireSpeedButtons()
+    {
+        Button[] buttons = SpeedButtons;
+        float[] speeds = SettingsManager.SpeedOptions;
+
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            if (buttons[i] == null)
+                continue;
+
+            if (i >= speeds.Length)
+            {
+                // Fewer speeds than buttons — hide the spare rather than leave a
+                // dead button on the screen.
+                buttons[i].gameObject.SetActive(false);
+                continue;
+            }
+
+            float speed = speeds[i]; // copied per iteration: the closure must not capture i
+            buttons[i].onClick.AddListener(() => OnSpeedSelected(speed));
+
+            var label = buttons[i].GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null)
+                label.text = SpeedLabel(speed);
+        }
+    }
+
+    // 0.5 -> "0.5x", 1 -> "1.0x", 1.5 -> "1.5x". Invariant culture so the decimal
+    // is always a dot, never a comma, regardless of the device locale.
+    private static string SpeedLabel(float speed) =>
+        speed.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "x";
 
     private void SetupSlider(Slider slider, UnityEngine.Events.UnityAction<float> callback)
     {
@@ -157,23 +201,34 @@ public class iPadSettingsPanel : MonoBehaviour
         UpdateVolumeLabel(backgroundValueText, value);
     }
 
+    // Narration and SFX have nothing playing in the world most of the time, so
+    // without a test sound these sliders would feel dead while being dragged.
+    // Background needs no preview — the scenes' ambient audio is already audible.
     private void OnNarrationVolumeChanged(float value)
     {
         SettingsManager.Instance.SetNarrationVolume(value);
         UpdateVolumeLabel(narrationValueText, value);
+        if (SettingsAudioPreview.Instance != null)
+            SettingsAudioPreview.Instance.PreviewNarration();
     }
 
     private void OnSoundFXVolumeChanged(float value)
     {
         SettingsManager.Instance.SetSoundFXVolume(value);
         UpdateVolumeLabel(soundFXValueText, value);
+        if (SettingsAudioPreview.Instance != null)
+            SettingsAudioPreview.Instance.PreviewSoundFX();
     }
 
     private void HighlightSpeedButton(float speed)
     {
-        SetButtonColor(speed075Button, Mathf.Approximately(speed, 0.75f));
-        SetButtonColor(speed100Button, Mathf.Approximately(speed, 1.0f));
-        SetButtonColor(speed125Button, Mathf.Approximately(speed, 1.25f));
+        Button[] buttons = SpeedButtons;
+        float[] speeds = SettingsManager.SpeedOptions;
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            bool selected = i < speeds.Length && Mathf.Approximately(speed, speeds[i]);
+            SetButtonColor(buttons[i], selected);
+        }
     }
 
     private void HighlightTimeButton(bool isDay)

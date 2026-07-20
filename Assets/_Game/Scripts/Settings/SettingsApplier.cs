@@ -10,6 +10,25 @@
 // loads while those objects are recreated per scene. So this component
 // auto-finds its targets at runtime and re-resolves + re-applies after every
 // scene load (CSHouse <-> CS_Outside) and whenever a setting changes.
+//
+// Lighting model: DAY is never *computed* — it is the scene's own lighting,
+// snapshotted untouched at scene load and written back verbatim. That includes
+// RenderSettings.ambientProbe, the baked spherical-harmonic probe Unity applies
+// from the LightingDataAsset. A runtime DynamicGI.UpdateEnvironment() cannot
+// reproduce it: the baked probe carries bounce light, a runtime skybox
+// projection does not, so recomputing always lands dimmer than the level's
+// opening brightness.
+//
+// TIMING IS THE WHOLE TRICK. Unity applies the baked probe as part of loading
+// the scene, and it is not reliably in place during Start()/sceneLoaded. So the
+// snapshot is deferred a couple of frames (lightingSettleFrames) and NO
+// time-of-day is applied until it has been taken — applying lighting first
+// would overwrite the values being snapshotted, which is exactly how day ended
+// up permanently darker after a night toggle.
+//
+// The consequence worth knowing: for those first frames the scene simply shows
+// its own authored lighting. If the player starts in night, night lands a frame
+// or two in. That is deliberate, and cheaper than the alternative.
 
 using System.Collections;
 using BNG;
@@ -44,6 +63,12 @@ public class SettingsApplier : MonoBehaviour
     [SerializeField] private string narrationVolumeParam = "NarrationVolume";
     [SerializeField] private string soundFXVolumeParam = "SFXVolume";
 
+    [Header("Lighting capture")]
+    [Tooltip("Frames to wait after a scene load before snapshotting its lighting, " +
+             "so Unity has finished applying the baked ambient probe. Raise this " +
+             "if day-after-night still doesn't match the level's opening brightness.")]
+    [SerializeField] private int lightingSettleFrames = 2;
+
     [Header("Debug")]
     [SerializeField] private bool verboseLogging = true;
 
@@ -58,9 +83,9 @@ public class SettingsApplier : MonoBehaviour
     private float _baseMovementSpeed = 1.25f;
 
     // The scene's own authored lighting, captured ONCE per scene load and
-    // restored when the player selects "day". Guarded by the scene handle so a
-    // second resolve in the same scene can't accidentally capture night values
-    // we applied ourselves.
+    // restored verbatim when the player selects "day". Guarded by the scene
+    // handle so a second resolve in the same scene can't accidentally capture
+    // night values we applied ourselves.
     private int _capturedSceneHandle = -1;
     private UnityEngine.Rendering.AmbientMode _dayAmbientMode;
     private Color _dayAmbientColor;
@@ -69,6 +94,25 @@ public class SettingsApplier : MonoBehaviour
     private Quaternion _daySunRotation;
     private Color _daySunColor;
     private float _daySunIntensity;
+
+    // The baked ambient probe and reflection that Unity applies from the scene's
+    // LightingDataAsset. This — not ambientMode/colour/intensity — is what makes
+    // day look the way it does, because a baked probe carries bounce light that a
+    // runtime skybox projection does not. Restoring it verbatim is the only way
+    // day-after-night can match the brightness the level opened on.
+    private UnityEngine.Rendering.SphericalHarmonicsL2 _dayAmbientProbe;
+    private float _dayReflectionIntensity;
+    private UnityEngine.Rendering.DefaultReflectionMode _dayReflectionMode;
+    private Texture _dayCustomReflection;
+
+    // False until the day snapshot has been taken. Time-of-day is NOT applied
+    // before then — writing lighting first would destroy the very values we are
+    // trying to snapshot.
+    private bool _dayLightingCaptured;
+
+    // Audio misconfiguration is reported once, not every time a slider moves.
+    private bool _warnedNoMixer;
+    private readonly System.Collections.Generic.HashSet<string> _warnedMissingParams = new();
 
     private void OnEnable()
     {
@@ -94,31 +138,47 @@ public class SettingsApplier : MonoBehaviour
             SettingsManager.Instance.OnSettingsChanged += ApplyAll;
         }
 
-        ResolveSceneObjects();
-        ApplyAll();
-
-        // Re-apply at end of frame to win any Start()-order race with BNG's
-        // LocomotionManager, which also sets a default locomotion in its Start().
-        StartCoroutine(ApplyEndOfFrame());
+        BeginScene();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // The tablet persists but the light and player rig are new objects in the
-        // freshly loaded scene — find them again, then re-apply the settings.
-        ResolveSceneObjects();
-        ApplyAll();
-        StartCoroutine(ApplyEndOfFrame());
+        // freshly loaded scene — find them again and re-run the capture.
+        BeginScene();
     }
 
-    private IEnumerator ApplyEndOfFrame()
+    // Entry point for "a scene just became current". Resolves objects, applies
+    // everything that is safe to apply immediately, then hands off to the
+    // coroutine that snapshots lighting once it has settled.
+    private void BeginScene()
     {
-        yield return null;
+        ResolveSceneObjects();
+        ApplyAll(); // movement + audio only — ApplyAll skips lighting until captured
+        StopCoroutine(nameof(CaptureThenApplyLighting));
+        StartCoroutine(nameof(CaptureThenApplyLighting));
+    }
+
+    private IEnumerator CaptureThenApplyLighting()
+    {
+        // Let the scene settle before reading its lighting. Unity applies the
+        // baked ambient probe from the LightingDataAsset as part of the load, and
+        // reading it too early yields the pre-bake default — which then becomes a
+        // permanently-too-dark "day".
+        for (int i = 0; i < Mathf.Max(1, lightingSettleFrames); i++)
+            yield return null;
+
+        CaptureDayLighting();
+
+        // Now safe: the snapshot exists, so lighting can be applied. This also
+        // re-applies locomotion, winning any Start()-order race with BNG's
+        // LocomotionManager, which sets a default locomotion in its own Start().
         ApplyAll();
     }
 
-    // Finds this scene's locomotion components and main directional light, and
-    // captures the scene's authored ("day") lighting exactly once per scene.
+    // Finds this scene's locomotion components and main directional light. Does
+    // NOT touch lighting — that is CaptureDayLighting's job, deliberately
+    // deferred (see the header comment).
     private void ResolveSceneObjects()
     {
         _locomotionManager = FindFirstObjectByType<LocomotionManager>();
@@ -145,28 +205,16 @@ public class SettingsApplier : MonoBehaviour
             }
         }
 
-        // Capture the untouched scene lighting ONCE per scene. Resolve can run
-        // again in the same scene (Start after sceneLoaded); re-capturing then
-        // would record values we already modified.
+        // A new scene invalidates the previous day snapshot — mark it stale so
+        // ApplyAll withholds lighting until the coroutine re-captures.
         int sceneHandle = SceneManager.GetActiveScene().handle;
         if (sceneHandle != _capturedSceneHandle)
         {
             _capturedSceneHandle = sceneHandle;
+            _dayLightingCaptured = false;
 
             if (_smoothLocomotion != null)
                 _baseMovementSpeed = _smoothLocomotion.MovementSpeed;
-
-            _dayAmbientMode = RenderSettings.ambientMode;
-            _dayAmbientColor = RenderSettings.ambientLight;
-            _dayAmbientIntensity = RenderSettings.ambientIntensity;
-            _daySkybox = RenderSettings.skybox;
-
-            if (_directionalLight != null)
-            {
-                _daySunRotation = _directionalLight.transform.rotation;
-                _daySunColor = _directionalLight.color;
-                _daySunIntensity = _directionalLight.intensity;
-            }
         }
 
         if (verboseLogging)
@@ -176,6 +224,47 @@ public class SettingsApplier : MonoBehaviour
                       $"sun={( _directionalLight != null ? _directionalLight.name : "none" )}.");
     }
 
+    // Snapshots the scene's lighting exactly as authored/baked. Must run before
+    // ApplyTimeOfDay has written anything, or it records our own night values.
+    private void CaptureDayLighting()
+    {
+        if (_dayLightingCaptured)
+            return;
+
+        _dayAmbientMode = RenderSettings.ambientMode;
+        _dayAmbientColor = RenderSettings.ambientLight;
+        _dayAmbientIntensity = RenderSettings.ambientIntensity;
+        _daySkybox = RenderSettings.skybox;
+
+        // The parts that actually carry the brightness.
+        _dayAmbientProbe = RenderSettings.ambientProbe;
+        _dayReflectionIntensity = RenderSettings.reflectionIntensity;
+        _dayReflectionMode = RenderSettings.defaultReflectionMode;
+        _dayCustomReflection = RenderSettings.customReflectionTexture;
+
+        if (_directionalLight != null)
+        {
+            _daySunRotation = _directionalLight.transform.rotation;
+            _daySunColor = _directionalLight.color;
+            _daySunIntensity = _directionalLight.intensity;
+        }
+
+        _dayLightingCaptured = true;
+
+        if (verboseLogging)
+            Debug.Log($"[SettingsApplier] Day lighting captured after {lightingSettleFrames} frame(s). " +
+                      $"ambientMode={_dayAmbientMode}, intensity={_dayAmbientIntensity}, " +
+                      $"probeLuma={ProbeLuma(_dayAmbientProbe):F4}. " +
+                      $"Returning to day should report this same probeLuma.");
+    }
+
+    // Rough brightness of an ambient probe: the DC (constant) term of the
+    // spherical harmonic, which is what a flat "how bright is the ambient"
+    // question actually means. Logged so a day/night/day cycle can be compared
+    // numerically instead of by eye.
+    private static float ProbeLuma(UnityEngine.Rendering.SphericalHarmonicsL2 sh) =>
+        0.2126f * sh[0, 0] + 0.7152f * sh[1, 0] + 0.0722f * sh[2, 0];
+
     public void ApplyAll()
     {
         if (SettingsManager.Instance == null)
@@ -184,7 +273,13 @@ public class SettingsApplier : MonoBehaviour
         var s = SettingsManager.Instance.CurrentSettings;
         ApplyMovementType(s.movement.type);
         ApplyMovementSpeed(s.movement.speed);
-        ApplyTimeOfDay(s.environment.timeOfDay);
+
+        // Withhold lighting until the day snapshot exists. Writing it now would
+        // clobber the baked probe before CaptureDayLighting can read it, and the
+        // scene is already showing correct day lighting in the meantime anyway.
+        if (_dayLightingCaptured)
+            ApplyTimeOfDay(s.environment.timeOfDay);
+
         ApplyAudio(s.audio);
     }
 
@@ -222,6 +317,9 @@ public class SettingsApplier : MonoBehaviour
             RenderSettings.ambientLight = _dayAmbientColor;
             RenderSettings.ambientIntensity = _dayAmbientIntensity;
             RenderSettings.skybox = _daySkybox;
+            RenderSettings.defaultReflectionMode = _dayReflectionMode;
+            RenderSettings.customReflectionTexture = _dayCustomReflection;
+            RenderSettings.reflectionIntensity = _dayReflectionIntensity;
 
             if (_directionalLight != null)
             {
@@ -229,6 +327,18 @@ public class SettingsApplier : MonoBehaviour
                 _directionalLight.color = _daySunColor;
                 _directionalLight.intensity = _daySunIntensity;
             }
+
+            // Order matters. UpdateEnvironment regenerates the reflection from the
+            // restored skybox, but it ALSO overwrites ambientProbe with a runtime
+            // skybox projection that is dimmer than the baked one. So run it first,
+            // then put the snapshotted probe back — last write wins, and day ends
+            // up bit-for-bit what the level opened on.
+            DynamicGI.UpdateEnvironment();
+            RenderSettings.ambientProbe = _dayAmbientProbe;
+
+            if (verboseLogging)
+                Debug.Log($"[SettingsApplier] Day restored. probeLuma={ProbeLuma(RenderSettings.ambientProbe):F4} " +
+                          $"(captured {ProbeLuma(_dayAmbientProbe):F4} — these must match).");
         }
         else
         {
@@ -246,10 +356,10 @@ public class SettingsApplier : MonoBehaviour
                 _directionalLight.color = nightSunColor;
                 _directionalLight.intensity = nightSunIntensity;
             }
-        }
 
-        // Ambient/skybox changed — rebuild the environment lighting probe.
-        DynamicGI.UpdateEnvironment();
+            // Ambient/skybox changed — rebuild the environment lighting probe.
+            DynamicGI.UpdateEnvironment();
+        }
     }
 
     // ----- Audio -------------------------------------------------------------
@@ -258,12 +368,15 @@ public class SettingsApplier : MonoBehaviour
     {
         if (audioMixer == null)
         {
-            // TODO: No AudioMixer exists yet because the project has no
-            // background/narration/SFX audio assets. Once audio is added, create
-            // an AudioMixer with three exposed volume params (names above),
-            // assign it on the Tablet_manager prefab, and route the scene's
-            // AudioSources through its groups. Volumes are already being saved
-            // to settings.json in the meantime.
+            // Volumes are still saved to settings.json — they just have nothing to
+            // act on. Assign the mixer on the Tablet_manager prefab to connect them.
+            if (verboseLogging && !_warnedNoMixer)
+            {
+                _warnedNoMixer = true;
+                Debug.LogWarning("[SettingsApplier] No AudioMixer assigned — the volume " +
+                                 "sliders will save but change nothing. Assign one to the " +
+                                 "'Audio Mixer' field on the Tablet_manager prefab.");
+            }
             return;
         }
 
@@ -279,7 +392,21 @@ public class SettingsApplier : MonoBehaviour
             return;
 
         // -80 dB is Unity's mixer floor (effectively muted); log curve above that.
+        // The log curve is what makes a linear slider *sound* linear — halfway
+        // lands at about -6 dB, which the ear reads as "half as loud".
         float dB = linear01 <= 0.0001f ? -80f : Mathf.Log10(Mathf.Clamp01(linear01)) * 20f;
-        audioMixer.SetFloat(param, dB);
+
+        // SetFloat returns false when no exposed parameter has that name. This is
+        // the single most common way mixer volume "silently does nothing": the
+        // group exists but its volume was never exposed, or was exposed under a
+        // different name. Say so once, loudly, with the name we actually tried.
+        if (!audioMixer.SetFloat(param, dB) && !_warnedMissingParams.Contains(param))
+        {
+            _warnedMissingParams.Add(param);
+            Debug.LogError($"[SettingsApplier] AudioMixer '{audioMixer.name}' has no exposed " +
+                           $"parameter named '{param}'. In the Audio Mixer window, right-click " +
+                           $"that group's Volume slider > 'Expose ... to script', then rename the " +
+                           $"entry under Exposed Parameters to exactly '{param}'.");
+        }
     }
 }

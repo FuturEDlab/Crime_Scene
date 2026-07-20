@@ -73,7 +73,7 @@ The base prefab owns navigation and screen containers; the variant adds all game
 
 ### 2.3 The shared input seam
 
-The **A button** serves two systems: tablet recall and gaze-door open/close. `DoorGazeManager` claims the button while the player looks at a door by setting `TabletRecallInScene.SuppressRecall`; otherwise the press summons the tablet. This is deliberate — one "interact" button keeps the VR control scheme minimal — but it is a coupling worth watching as more systems want input.
+Input is split across two buttons so the systems never contend. The **A button** summons the tablet (`TabletRecallInScene`). Gaze-doors open/close on the **controller trigger** (`DoorGazeManager`, read through BNG's `InputBridge`), gated by looking at a door within range — so you only ever toggle the door you are actually facing. The two paths are fully independent; `TabletRecallInScene.SuppressRecall` remains as a hook but is no longer driven by the door system.
 
 ---
 

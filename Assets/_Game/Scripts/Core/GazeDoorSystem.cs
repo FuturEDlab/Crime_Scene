@@ -3,10 +3,10 @@
 // Design: physics doors are awkward in VR (must be grabbed, swing shut on their
 // own, and grabbing the handle triggers a hand-scaling bug). Instead, every BNG
 // door starts CLOSED and non-grabbable. When the player looks at a door within
-// range, a small world-space prompt appears on it ("Press A to open/close");
-// pressing the tablet-recall button toggles the door: closed doors swing open
-// (away from the player), open doors swing shut. While a door is targeted the
-// tablet recall is suppressed so the same press doesn't also summon the iPad.
+// range, a small world-space prompt appears on it ("Press Trigger to open/close");
+// pulling the controller TRIGGER toggles the door: closed doors swing open (away
+// from the player), open doors swing shut. Doors use the trigger, not the "A"
+// button, because "A" already summons the iPad (TabletRecallInScene).
 //
 // Everything here is a pure code bootstrap — no scene setup or prefab wiring.
 // Per-door tweaks: DoorPropAngleOverride (angle/direction), GazeDoorExclude
@@ -304,21 +304,27 @@ public class DoorGazeManager : MonoBehaviour
 
     private void Update()
     {
-        TabletRecallInScene recall = TabletRecallInScene.Instance;
         GazeDoor door = FindGazedDoor();
-
-        // Claim or release the shared "bring iPad" button.
-        if (recall != null)
-            recall.SuppressRecall = door != null;
-
         SetTarget(door);
 
-        if (door != null && recall != null && recall.ToggleAction != null &&
-            recall.ToggleAction.WasPerformedThisFrame())
+        // Doors open on the controller TRIGGER. The tablet-recall button ("A") is
+        // deliberately NOT reused here — the iPad already owns "A", and sharing it
+        // forced the old SuppressRecall dance. Trigger + gaze keeps the two apart:
+        // you only ever toggle the door you are actually looking at.
+        if (door != null && TriggerPressedThisFrame())
         {
             Camera cam = Camera.main;
             door.Toggle(cam != null ? cam.transform.position : door.PromptPosition);
         }
+    }
+
+    // True on the frame either controller's trigger crosses its press threshold.
+    // Uses BNG's InputBridge, the project's single input hub (Oculus/OpenXR), so
+    // there is nothing to wire per scene.
+    private static bool TriggerPressedThisFrame()
+    {
+        InputBridge input = InputBridge.Instance;
+        return input != null && (input.RightTriggerDown || input.LeftTriggerDown);
     }
 
     // Raycast from the centre of the player's view. Uses RaycastAll and skips
@@ -390,7 +396,7 @@ public class DoorGazeManager : MonoBehaviour
         }
     }
 
-    // Builds a small world-space "Press A to open" label entirely from code.
+    // Builds a small world-space "Press Trigger to open" label entirely from code.
     private void BuildPrompt()
     {
         int uiLayer = LayerMask.NameToLayer("UI"); // excluded from iPad photos
@@ -433,24 +439,12 @@ public class DoorGazeManager : MonoBehaviour
         _prompt.gameObject.SetActive(false);
     }
 
-    // Human-readable name of the tablet-recall binding ("A" on the headset).
+    // Name of the button that opens/closes doors, shown in the gaze prompt.
+    // Doors are on the controller trigger (see Update).
     private string GetButtonName()
     {
-        if (!string.IsNullOrEmpty(_buttonName))
-            return _buttonName;
-
-        _buttonName = "A";
-        TabletRecallInScene recall = TabletRecallInScene.Instance;
-        if (recall != null && recall.ToggleAction != null)
-        {
-            try
-            {
-                string display = recall.ToggleAction.GetBindingDisplayString();
-                if (!string.IsNullOrEmpty(display))
-                    _buttonName = display;
-            }
-            catch { /* keep fallback */ }
-        }
+        if (string.IsNullOrEmpty(_buttonName))
+            _buttonName = "Trigger";
         return _buttonName;
     }
 }

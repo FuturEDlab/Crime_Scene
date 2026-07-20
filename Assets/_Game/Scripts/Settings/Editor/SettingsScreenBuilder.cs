@@ -128,12 +128,15 @@ public static class SettingsScreenBuilder
         AddRowLabel(moveRow, "Movement");
         Toggle teleportToggle = CreateToggle(moveRow, "TeleportToggle", "Teleport");
 
-        // --- 5. Speed row.
+        // --- 5. Speed row. Labels come from SettingsManager.SpeedOptions so the
+        // builder and the runtime panel always agree on the numbers.
         RectTransform speedRow = CreateRow(container, "SpeedRow", 84f, out _);
         AddRowLabel(speedRow, "Speed");
-        Button speed075 = CreateButton(speedRow, "Speed075Button", "0.75x", 0f, flexibleWidth: 1f);
-        Button speed100 = CreateButton(speedRow, "Speed100Button", "1.0x", 0f, flexibleWidth: 1f);
-        Button speed125 = CreateButton(speedRow, "Speed125Button", "1.25x", 0f, flexibleWidth: 1f);
+        float[] speeds = SettingsManager.SpeedOptions;
+        var ic = System.Globalization.CultureInfo.InvariantCulture;
+        Button speedSlow = CreateButton(speedRow, "SpeedSlowButton", speeds[0].ToString("0.0", ic) + "x", 0f, flexibleWidth: 1f);
+        Button speedNormal = CreateButton(speedRow, "SpeedNormalButton", speeds[1].ToString("0.0", ic) + "x", 0f, flexibleWidth: 1f);
+        Button speedFast = CreateButton(speedRow, "SpeedFastButton", speeds[2].ToString("0.0", ic) + "x", 0f, flexibleWidth: 1f);
 
         // --- 6. Time of day row.
         RectTransform timeRow = CreateRow(container, "TimeOfDayRow", 84f, out _);
@@ -155,9 +158,9 @@ public static class SettingsScreenBuilder
         so.FindProperty("settingsPanel").objectReferenceValue = null;   // ScreenManager owns visibility
         so.FindProperty("settingsButton").objectReferenceValue = null;
         so.FindProperty("teleportToggle").objectReferenceValue = teleportToggle;
-        so.FindProperty("speed075Button").objectReferenceValue = speed075;
-        so.FindProperty("speed100Button").objectReferenceValue = speed100;
-        so.FindProperty("speed125Button").objectReferenceValue = speed125;
+        so.FindProperty("speedSlowButton").objectReferenceValue = speedSlow;
+        so.FindProperty("speedNormalButton").objectReferenceValue = speedNormal;
+        so.FindProperty("speedFastButton").objectReferenceValue = speedFast;
         so.FindProperty("dayButton").objectReferenceValue = dayButton;
         so.FindProperty("nightButton").objectReferenceValue = nightButton;
         so.FindProperty("backgroundSlider").objectReferenceValue = bgSlider;

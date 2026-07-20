@@ -12,6 +12,32 @@ public class SettingsManager : MonoBehaviour
 {
     public static SettingsManager Instance { get; private set; }
 
+    // The only place the selectable speeds are defined. iPadSettingsPanel builds
+    // its buttons and labels from this, so changing a value here changes the UI
+    // too — no prefab edit needed. Slow/normal/fast, kept far enough apart that
+    // the difference is obvious in the headset.
+    public static readonly float[] SpeedOptions = { 0.5f, 1.0f, 1.5f };
+    public const float DefaultSpeed = 1.0f;
+
+    // Snaps any speed to the nearest supported option. Used when loading, so a
+    // settings.json written by an older build (which offered 0.75/1.25) still
+    // produces a valid selection instead of a value no button can represent.
+    public static float SnapToNearestSpeed(float speed)
+    {
+        float nearest = SpeedOptions[0];
+        float bestDelta = Mathf.Abs(speed - nearest);
+        foreach (float option in SpeedOptions)
+        {
+            float delta = Mathf.Abs(speed - option);
+            if (delta < bestDelta)
+            {
+                bestDelta = delta;
+                nearest = option;
+            }
+        }
+        return nearest;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -48,7 +74,7 @@ public class SettingsManager : MonoBehaviour
     public class MovementSettings
     {
         public string type = "continuous";
-        public float speed = 1.0f;
+        public float speed = DefaultSpeed;
     }
 
     [Serializable]
@@ -112,6 +138,7 @@ public class SettingsManager : MonoBehaviour
             {
                 string json = File.ReadAllText(SettingsFilePath);
                 _wrapper = JsonUtility.FromJson<SettingsWrapper>(json);
+                MigrateLoadedSettings();
                 Debug.Log($"[SettingsManager] Settings loaded from {SettingsFilePath}");
             }
             catch (Exception e)
@@ -128,6 +155,28 @@ public class SettingsManager : MonoBehaviour
         }
 
         OnSettingsChanged?.Invoke();
+    }
+
+    // Brings a settings file written by an older build up to date. JsonUtility
+    // returns nulls for objects a stored file predates, and the speed list has
+    // changed (0.75/1.25 -> 0.5/1.5), so a saved 0.75 must become a value one of
+    // today's buttons actually offers.
+    private void MigrateLoadedSettings()
+    {
+        if (_wrapper == null)
+            _wrapper = new SettingsWrapper();
+        if (_wrapper.settings == null)
+            _wrapper.settings = new SettingsData();
+        if (_wrapper.settings.movement == null)
+            _wrapper.settings.movement = new MovementSettings();
+        if (_wrapper.settings.environment == null)
+            _wrapper.settings.environment = new EnvironmentSettings();
+        if (_wrapper.settings.audio == null)
+            _wrapper.settings.audio = new AudioSettings();
+        if (_wrapper.settings.accessibility == null)
+            _wrapper.settings.accessibility = new AccessibilitySettings();
+
+        _wrapper.settings.movement.speed = SnapToNearestSpeed(_wrapper.settings.movement.speed);
     }
 
     public void SaveSettings(string source = "iPad")
@@ -164,8 +213,7 @@ public class SettingsManager : MonoBehaviour
 
     public void SetMovementSpeed(float speedMultiplier)
     {
-        float[] validSpeeds = { 0.75f, 1.0f, 1.25f };
-        bool isValid = Array.Exists(validSpeeds, s => Mathf.Approximately(s, speedMultiplier));
+        bool isValid = Array.Exists(SpeedOptions, s => Mathf.Approximately(s, speedMultiplier));
         if (!isValid)
         {
             Debug.LogWarning($"[SettingsManager] Invalid speed {speedMultiplier}.");

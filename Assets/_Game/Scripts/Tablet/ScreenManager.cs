@@ -15,6 +15,10 @@ public class ScreenManager : MonoBehaviour
     [SerializeField] private GameObject notebookScreen;
     [SerializeField] private GameObject cameraScreen;
 
+    // Recorded witness statements app (null-guarded: only the Tablet_manager
+    // variant has this screen, the base Tablet prefab does not).
+    [SerializeField] private GameObject statementsScreen;
+
     // Optional: the GameObject holding the iPad's capture Camera (with IpadCamera).
     // Kept disabled unless the Camera app is open so it doesn't render every frame.
     [SerializeField] private GameObject cameraRig;
@@ -35,6 +39,9 @@ public class ScreenManager : MonoBehaviour
         evidenceScreen.SetActive(false);
         notebookScreen.SetActive(false);
         cameraScreen.SetActive(false);
+
+        if (statementsScreen != null)
+            statementsScreen.SetActive(false);
 
         // Stop the iPad camera rendering whenever we leave the Camera app.
         if (cameraRig != null)
@@ -72,6 +79,14 @@ public class ScreenManager : MonoBehaviour
     {
         HideAll();
         notebookScreen.SetActive(true);
+    }
+
+    // Show the recorded statements screen
+    public void ShowStatements()
+    {
+        HideAll();
+        if (statementsScreen != null)
+            statementsScreen.SetActive(true);
     }
 
     // Show the Camera screen

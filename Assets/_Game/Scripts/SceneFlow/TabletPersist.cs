@@ -4,17 +4,23 @@ using UnityEngine;
 
 public class TabletPersist : MonoBehaviour
 {
-    private static TabletPersist instance;
+    public static TabletPersist Instance { get; private set; }
 
     private void Awake()
     {
-        if (instance != null && instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
-        instance = this;
+        Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 }

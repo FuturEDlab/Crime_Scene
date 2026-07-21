@@ -243,15 +243,43 @@ public class IpadCamera : MonoBehaviour
         }
 
         SetupCamera();
+        StartCoroutine(CaptureRoutine());
+    }
 
-        // URP keeps _previewTexture updated every frame, so we just copy out
-        // whatever is currently shown in the viewfinder.
-        Texture2D photo = new Texture2D(photoWidth, photoHeight, TextureFormat.RGB24, false);
+    // The GPU->CPU copy must happen at end of frame on Quest (Vulkan): calling
+    // ReadPixels mid-frame from a UI event reads the RenderTexture before this
+    // frame's render finished, which on device fails or returns garbage — the
+    // photo then never reached the gallery. RGBA32 instead of RGB24 for the
+    // same reason: mobile GPUs do not support 24-bit readback.
+    private System.Collections.IEnumerator CaptureRoutine()
+    {
+        yield return new WaitForEndOfFrame();
+
+        if (captureCamera == null || _previewTexture == null)
+            yield break;
+
+        Texture2D photo = new Texture2D(photoWidth, photoHeight, TextureFormat.RGBA32, false);
         RenderTexture previousActive = RenderTexture.active;
-        RenderTexture.active = _previewTexture;
-        photo.ReadPixels(new Rect(0, 0, photoWidth, photoHeight), 0, 0);
-        photo.Apply();
-        RenderTexture.active = previousActive;
+        bool ok = true;
+        try
+        {
+            RenderTexture.active = _previewTexture;
+            photo.ReadPixels(new Rect(0, 0, photoWidth, photoHeight), 0, 0);
+            photo.Apply();
+        }
+        catch (System.Exception e)
+        {
+            ok = false;
+            Debug.LogError($"[IpadCamera] Photo readback failed: {e.Message}");
+            Destroy(photo);
+        }
+        finally
+        {
+            RenderTexture.active = previousActive;
+        }
+
+        if (!ok)
+            yield break;
 
         List<string> captured = DetectAndMarkEvidence();
 
@@ -265,6 +293,7 @@ public class IpadCamera : MonoBehaviour
         else
         {
             Debug.LogWarning("[IpadCamera] No PhotoLibrary in scene - photo discarded.");
+            Destroy(photo);
         }
 
         PlayShutterFlash();
@@ -299,14 +328,23 @@ public class IpadCamera : MonoBehaviour
                 continue;
 
             if (!GeometryUtility.TestPlanesAABB(frustum, bounds))
-                continue;
+                continue; // not in frame — no log, this is the normal case
 
             float distance = (bounds.center - camPos).magnitude;
             if (distance > maxDetectionDistance)
+            {
+                if (verboseLogging)
+                    Debug.Log($"[IpadCamera] '{item.displayName}' in frame but too far " +
+                              $"({distance:0.0}m > {maxDetectionDistance}m).");
                 continue;
+            }
 
             if (requireLineOfSight && IsOccluded(item, eyePos, bounds.center))
+            {
+                if (verboseLogging)
+                    Debug.Log($"[IpadCamera] '{item.displayName}' in frame but occluded from the player's eyes.");
                 continue;
+            }
 
             grading.MarkFound(item.evidenceId);
             capturedIds.Add(item.evidenceId);
@@ -321,12 +359,33 @@ public class IpadCamera : MonoBehaviour
         float dist = dir.magnitude;
         if (dist <= 0.001f)
             return false;
+        dir /= dist;
 
-        if (!Physics.Raycast(origin, dir.normalized, out RaycastHit hit, dist + 0.1f, occlusionMask, QueryTriggerInteraction.Ignore))
-            return false; // nothing in the way
+        // Check EVERY collider along the ray, not just the first: in VR the
+        // held tablet (and often a hand) sits directly between the player's
+        // eyes and whatever is being photographed, so a single closest-hit ray
+        // always struck the tablet and reported the evidence as occluded —
+        // which is why the evidence badge never appeared on device. Only
+        // genuine world obstructions (walls, furniture) should block.
+        RaycastHit[] hits = Physics.RaycastAll(origin, dir, dist + 0.1f, occlusionMask, QueryTriggerInteraction.Ignore);
+        foreach (RaycastHit hit in hits)
+        {
+            // The item itself (or one of its children) is visible, not a blocker.
+            if (hit.transform.IsChildOf(item.transform))
+                continue;
 
-        // If we hit the item itself (or one of its children), it is visible.
-        return !hit.transform.IsChildOf(item.transform);
+            // The held tablet is not a blocker — the player aims THROUGH it.
+            if (hit.collider.GetComponentInParent<TabletPersist>() != null)
+                continue;
+
+            // The player's own body / hands / controllers are not blockers.
+            if (hit.collider.GetComponentInParent<BNG.BNGPlayerController>() != null)
+                continue;
+
+            return true; // a real wall/furniture obstruction
+        }
+
+        return false;
     }
 
     private void PlayShutterFlash()

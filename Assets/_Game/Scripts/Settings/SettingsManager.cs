@@ -12,16 +12,59 @@ public class SettingsManager : MonoBehaviour
 {
     public static SettingsManager Instance { get; private set; }
 
+    // The only place the selectable speeds are defined. iPadSettingsPanel builds
+    // its buttons and labels from this, so changing a value here changes the UI
+    // too — no prefab edit needed. Slow/normal/fast, kept far enough apart that
+    // the difference is obvious in the headset.
+    public static readonly float[] SpeedOptions = { 0.5f, 1.0f, 1.5f };
+    public const float DefaultSpeed = 1.0f;
+
+    // Snaps any speed to the nearest supported option. Used when loading, so a
+    // settings.json written by an older build (which offered 0.75/1.25) still
+    // produces a valid selection instead of a value no button can represent.
+    public static float SnapToNearestSpeed(float speed)
+    {
+        float nearest = SpeedOptions[0];
+        float bestDelta = Mathf.Abs(speed - nearest);
+        foreach (float option in SpeedOptions)
+        {
+            float delta = Mathf.Abs(speed - option);
+            if (delta < bestDelta)
+            {
+                bestDelta = delta;
+                nearest = option;
+            }
+        }
+        return nearest;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            // Destroy ONLY this component, never the whole GameObject. This
+            // manager rides on the Tablet_manager prefab root (next to
+            // PhotoLibrary / EvidenceGradingManager); if a SettingsManager from a
+            // previous scene (e.g. the main menu) already persists, destroying
+            // the GameObject here would delete the entire tablet.
+            Destroy(this);
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+
+        // DontDestroyOnLoad only works on root objects. On the tablet the root
+        // already persists via TabletPersist, so this is just for standalone use
+        // (e.g. a SettingsManager object in the main menu scene).
+        if (transform.parent == null)
+            DontDestroyOnLoad(gameObject);
+
         LoadSettings();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private static string SettingsFilePath =>
@@ -31,7 +74,7 @@ public class SettingsManager : MonoBehaviour
     public class MovementSettings
     {
         public string type = "continuous";
-        public float speed = 1.0f;
+        public float speed = DefaultSpeed;
     }
 
     [Serializable]
@@ -81,6 +124,12 @@ public class SettingsManager : MonoBehaviour
     public SettingsData CurrentSettings => _wrapper.settings;
     private SettingsWrapper _wrapper = new SettingsWrapper();
 
+    // Raised after settings are loaded OR changed. Scene-side components
+    // (SettingsApplier) subscribe to this to push the new values onto the actual
+    // world objects — lights, locomotion, audio — that this persistent singleton
+    // cannot hold references to across scene loads.
+    public event Action OnSettingsChanged;
+
     public void LoadSettings()
     {
         if (File.Exists(SettingsFilePath))
@@ -89,6 +138,7 @@ public class SettingsManager : MonoBehaviour
             {
                 string json = File.ReadAllText(SettingsFilePath);
                 _wrapper = JsonUtility.FromJson<SettingsWrapper>(json);
+                MigrateLoadedSettings();
                 Debug.Log($"[SettingsManager] Settings loaded from {SettingsFilePath}");
             }
             catch (Exception e)
@@ -103,6 +153,30 @@ public class SettingsManager : MonoBehaviour
             Debug.Log("[SettingsManager] No settings file found — writing defaults.");
             SaveSettings("system");
         }
+
+        OnSettingsChanged?.Invoke();
+    }
+
+    // Brings a settings file written by an older build up to date. JsonUtility
+    // returns nulls for objects a stored file predates, and the speed list has
+    // changed (0.75/1.25 -> 0.5/1.5), so a saved 0.75 must become a value one of
+    // today's buttons actually offers.
+    private void MigrateLoadedSettings()
+    {
+        if (_wrapper == null)
+            _wrapper = new SettingsWrapper();
+        if (_wrapper.settings == null)
+            _wrapper.settings = new SettingsData();
+        if (_wrapper.settings.movement == null)
+            _wrapper.settings.movement = new MovementSettings();
+        if (_wrapper.settings.environment == null)
+            _wrapper.settings.environment = new EnvironmentSettings();
+        if (_wrapper.settings.audio == null)
+            _wrapper.settings.audio = new AudioSettings();
+        if (_wrapper.settings.accessibility == null)
+            _wrapper.settings.accessibility = new AccessibilitySettings();
+
+        _wrapper.settings.movement.speed = SnapToNearestSpeed(_wrapper.settings.movement.speed);
     }
 
     public void SaveSettings(string source = "iPad")
@@ -119,57 +193,57 @@ public class SettingsManager : MonoBehaviour
         {
             Debug.LogError($"[SettingsManager] Could not save settings: {e.Message}");
         }
+
+        // Whoever changed a value (main menu or iPad) writes the shared file, so
+        // notify listeners in the current scene to re-apply immediately.
+        OnSettingsChanged?.Invoke();
     }
+
+    // ----- Setters -----------------------------------------------------------
+    // Each setter only edits the shared data model and persists it. The actual
+    // in-world effect is applied by SettingsApplier, which listens to
+    // OnSettingsChanged. This keeps SettingsManager scene-independent so the same
+    // instance survives from the main menu into the experience.
 
     public void SetMovementType(bool useTeleport)
     {
         CurrentSettings.movement.type = useTeleport ? "teleport" : "continuous";
-        // TODO: Swap active locomotion provider components.
         SaveSettings("iPad");
     }
 
     public void SetMovementSpeed(float speedMultiplier)
     {
-        float[] validSpeeds = { 0.75f, 1.0f, 1.25f };
-        bool isValid = Array.Exists(validSpeeds, s => Mathf.Approximately(s, speedMultiplier));
+        bool isValid = Array.Exists(SpeedOptions, s => Mathf.Approximately(s, speedMultiplier));
         if (!isValid)
         {
             Debug.LogWarning($"[SettingsManager] Invalid speed {speedMultiplier}.");
             return;
         }
         CurrentSettings.movement.speed = speedMultiplier;
-        // TODO: Apply multiplier to the ContinuousMoveProvider.
         SaveSettings("iPad");
     }
 
     public void SetTimeOfDay(bool isDay)
     {
         CurrentSettings.environment.timeOfDay = isDay ? "day" : "night";
-        // TODO: Swap skybox and adjust directional light.
         SaveSettings("iPad");
     }
 
     public void SetBackgroundVolume(float volume)
     {
-        volume = Mathf.Clamp01(volume);
-        CurrentSettings.audio.backgroundVolume = volume;
-        // TODO: No background audio assets exist yet.
+        CurrentSettings.audio.backgroundVolume = Mathf.Clamp01(volume);
         SaveSettings("iPad");
     }
 
     public void SetNarrationVolume(float volume)
     {
-        volume = Mathf.Clamp01(volume);
-        CurrentSettings.audio.narrationVolume = volume;
-        // TODO: No narration audio assets exist yet.
+        CurrentSettings.audio.narrationVolume = Mathf.Clamp01(volume);
         SaveSettings("iPad");
     }
 
     public void SetSoundFXVolume(float volume)
     {
-        volume = Mathf.Clamp01(volume);
-        CurrentSettings.audio.soundFXVolume = volume;
-        // TODO: No SFX audio assets exist yet.
+        CurrentSettings.audio.soundFXVolume = Mathf.Clamp01(volume);
         SaveSettings("iPad");
     }
 

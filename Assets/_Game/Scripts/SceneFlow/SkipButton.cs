@@ -1,11 +1,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Playables;
+using UnityEngine.InputSystem;
 
 public class SkipButton : MonoBehaviour
 {
     [Header("Where to go when skipping")]
-    [SerializeField] private string menuSceneName = "MainMenu";
+    [SerializeField] private string menuSceneName = "MenuScene";
 
     [Header("Optional UI element")]
     [SerializeField] private GameObject skipUI; 
@@ -15,9 +16,8 @@ public class SkipButton : MonoBehaviour
     [SerializeField] private PlayableDirector cutscene;
     [SerializeField] private bool evaluateToEnd = true;
 
-    [Header("Hotkeys")]
-    [SerializeField] private KeyCode primaryKey = KeyCode.None;
-    [SerializeField] private KeyCode secondaryKey = KeyCode.Escape;
+    [Header("Hotkey (desktop testing)")]
+    [SerializeField] private Key skipKey = Key.Escape;
 
     private bool skipEnabled = false;
 
@@ -56,7 +56,8 @@ public class SkipButton : MonoBehaviour
     {
         if (!skipEnabled) return;
 
-        if (Input.GetKeyDown(primaryKey) || Input.GetKeyDown(secondaryKey))
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null && skipKey != Key.None && keyboard[skipKey].wasPressedThisFrame)
             Skip();
     }
 

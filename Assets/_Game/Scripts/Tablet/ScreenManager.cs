@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;  // Gives us access to Unity-specific classes like MonoBehaviour, GameObject, etc.
 
 
@@ -18,6 +17,9 @@ public class ScreenManager : MonoBehaviour
     // Recorded witness statements app (null-guarded: only the Tablet_manager
     // variant has this screen, the base Tablet prefab does not).
     [SerializeField] private GameObject statementsScreen;
+
+    // Photo library screen (null-guarded: only the tutorial tablet has it).
+    [SerializeField] private GameObject libraryScreen;
 
     // Optional: the GameObject holding the iPad's capture Camera (with IpadCamera).
     // Kept disabled unless the Camera app is open so it doesn't render every frame.
@@ -42,6 +44,9 @@ public class ScreenManager : MonoBehaviour
 
         if (statementsScreen != null)
             statementsScreen.SetActive(false);
+
+        if (libraryScreen != null)
+            libraryScreen.SetActive(false);
 
         // Stop the iPad camera rendering whenever we leave the Camera app.
         if (cameraRig != null)
@@ -87,6 +92,14 @@ public class ScreenManager : MonoBehaviour
         HideAll();
         if (statementsScreen != null)
             statementsScreen.SetActive(true);
+    }
+
+    // Show the photo Library screen
+    public void ShowLibrary()
+    {
+        HideAll();
+        if (libraryScreen != null)
+            libraryScreen.SetActive(true);
     }
 
     // Show the Camera screen

@@ -1,14 +1,18 @@
+using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 
 public class StartMusicOnInput : MonoBehaviour
 {
     private AudioSource _audioSource;
     private bool _musicStarted;
+    private IDisposable _anyButtonListener;
 
     [Header("Player Settings")]
     public Transform playerTransform;
 
-    void Start()
+    void Awake()
     {
         _audioSource = GetComponent<AudioSource>();
 
@@ -20,18 +24,17 @@ public class StartMusicOnInput : MonoBehaviour
         }
     }
 
-    void Update()
+    // Any button on any device (keyboard, mouse, gamepad, Quest controllers)
+    // starts the music once. Input System replacement for Input.anyKeyDown.
+    void OnEnable()
     {
-        if (!_musicStarted && _audioSource != null)
-        {
-            if (Input.anyKeyDown ||
-                Input.GetMouseButtonDown(0) ||
-                Input.GetButtonDown("Fire1") ||
-                Input.GetButtonDown("Jump"))
-            {
-                StartMusic();
-            }
-        }
+        _anyButtonListener = InputSystem.onAnyButtonPress.CallOnce(_ => StartMusic());
+    }
+
+    void OnDisable()
+    {
+        _anyButtonListener?.Dispose();
+        _anyButtonListener = null;
     }
 
     public void StartMusic()

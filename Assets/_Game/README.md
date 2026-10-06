@@ -9,22 +9,23 @@ All custom Crime Scene content lives under `Assets/_Game/`. Third-party packages
 | `Scenes/Production/` | Shipped levels (`CSHouse`, `CS_Outside`) |
 | `Scenes/Flow/` | Menus, tutorial, and experience flow scenes |
 | `Scenes/Dev/` | Test and prototype scenes only |
-| `Scripts/Core/` | Player rig setup, XR recenter, ambient audio |
+| `Scripts/Core/` | XR recenter, gaze doors, ambient audio |
 | `Scripts/SceneFlow/` | Scene loading, teleport triggers, tablet persistence |
-| `Scripts/Tablet/` | Tablet UI panels, clock, notebook, recall |
+| `Scripts/Tablet/` | Tablet UI (`ScreenManager` is the one tablet UI controller), clock, notebook, recall |
 | `Scripts/Interaction/` | Raycast grab/drop interactables |
 | `Scripts/Settings/` | Player settings persistence |
-| `Scripts/Dev/` | Editor/desktop-only movement helpers |
-| `Art/Environment/` | FBX environment and prop models |
+| `Scripts/Dev/` | Editor/desktop-only helpers (movement, `RigSwitcher` for the dev test scene) |
+| `Art/Environment/` | FBX environment and prop models. House models in use: `CrimeSceneHouseUpdate2026` + `CrimeSceneHouseNoStair` (CSHouse), `HouseShell` + `OutsideHouseFix` (CS_Outside) |
 | `Art/Materials/` | Materials and textures for environment art |
 | `Art/Tablet/` | Tablet mesh and app icon sprites |
 | `Art/Videos/` | In-game footage clips |
 | `Art/UI/` | UI-related materials and assets |
 | `Audio/` | Ambient sound effects |
-| `Prefabs/Player/` | Customized player rig prefabs |
-| `Data/TeleportDestinations/` | Scene teleport destination assets |
-| `Input/` | Input System action assets |
-| `_Archive/` | Retired prototypes (do not use in production) |
+| `Prefabs/Player/` | Player rig prefab (`XR Rig Rigidbody`, used by both production scenes) |
+| `Prefabs/Tablet/` | Tablet prefabs (`Tablet_manager`, `TabletRecall`, `Tablet`) |
+| `Prefabs/SceneFlow/` | `SceneTeleportTrigger` prefab used by both production scenes |
+| `Input/` | `InputSystem_Actions` (the project's Input System action asset) |
+| `_Archive/` | Retired prototypes and unused art (do not use in production) |
 
 ## Scene flow
 
@@ -49,6 +50,8 @@ Flow scenes are listed but disabled — they must stay in the build list so `Sce
 - Put new game scenes in `Scenes/Production/` or `Scenes/Flow/` as appropriate.
 - Do not add content to `_Archive/` unless retiring old work.
 - Leave vendor packages (`BNG Framework`, `Samples/`, `TextMesh Pro/`) untouched.
+- Our own prefabs go in `Prefabs/`, never inside the vendored `BNG Framework/` folder.
+- Player-facing input uses the Input System (an `InputActionProperty`, or `Keyboard.current` / `Mouse.current` for desktop testing). Don't add new `Input.GetKey` calls. Active Input Handling stays on *Both* because BNG still reads legacy input internally.
 
 ## After moving assets
 

@@ -49,7 +49,7 @@ public static class StatementsAppBuilder
             Debug.Log("[StatementsAppBuilder] Statements app built and saved into Tablet_manager.prefab.");
             EditorUtility.DisplayDialog("Build iPad Statements App",
                 "Done. Statements is installed as a section of the Notebook app.\n\n" +
-                "Play CSHouse, open the Notebook on the tablet and tap 'Statements >'.", "OK");
+                "Play CrimeScene_Main, open the Notebook on the tablet and tap 'Statements >'.", "OK");
         }
         finally
         {

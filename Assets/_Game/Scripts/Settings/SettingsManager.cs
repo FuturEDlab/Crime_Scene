@@ -8,6 +8,9 @@ using System;
 using System.IO;
 using UnityEngine;
 
+// Runs before other scripts so UI that reads Instance in OnEnable (iPadSettingsPanel)
+// finds it regardless of hierarchy order in the scene.
+[DefaultExecutionOrder(-100)]
 public class SettingsManager : MonoBehaviour
 {
     public static SettingsManager Instance { get; private set; }

@@ -1,20 +1,35 @@
 using System.Collections;
 using BNG;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
+// Teleports the player when they press the confirm button inside this trigger.
+// In the additive crime scene everything is loaded at once, so the trigger moves
+// the player to a SpawnPoint (looked up by id). targetScene is the legacy
+// whole-scene switch, used only when no spawn point id is set.
 public class SceneTeleportTrigger : MonoBehaviour
 {
-    [Header("Scene")]
+    [Header("Destination")]
+    [Tooltip("Id of a SpawnPoint to move the player to (additive scenes). Takes priority over Target Scene.")]
+    public string targetSpawnPoint;
+
+    [Tooltip("Legacy: scene to load (single mode) when Target Spawn Point is empty.")]
     public string targetScene;
 
-    [Header("Grabbers")]
+    [Header("Grabbers (found on the player at runtime if left empty)")]
     [SerializeField] private Grabber leftGrabber;
     [SerializeField] private Grabber rightGrabber;
 
     [Header("Optional UI Prompt")]
     [SerializeField] private GameObject promptText; // Can drag a text to put in front of player for UExperience so they know can teleport
+
+    [Tooltip("If Prompt Text is empty (the player rig lives in another scene), the prompt object is found by this name at runtime.")]
+    [SerializeField] private string promptTextName = "";
+
+    [Tooltip("Optional text written into the prompt when it is shown, so several triggers can share one prompt object.")]
+    [SerializeField] private string promptMessage = "";
 
     [Header("Button to teleport")]
     [SerializeField] private InputActionProperty confirmAction; // assign keyboard key + Meta Quest button in Inspector
@@ -38,15 +53,29 @@ public class SceneTeleportTrigger : MonoBehaviour
         isTeleporting = false;
 
         // Hide prompt when object disables
-        if (promptText != null)
-            promptText.SetActive(false);
+        SetPromptVisible(false);
     }
 
     private void Start()
     {
+        if (promptText == null && !string.IsNullOrEmpty(promptTextName))
+            promptText = FindSceneObject(promptTextName);
+
         // Make sure prompt starts hidden by default
-        if (promptText != null)
-            promptText.SetActive(false);
+        SetPromptVisible(false);
+
+        // The player rig lives in another scene (CrimeScene_Main), so the
+        // grabbers can't be wired in the Inspector — find them on the rig.
+        if (leftGrabber == null || rightGrabber == null)
+        {
+            foreach (Grabber grabber in FindObjectsByType<Grabber>(FindObjectsSortMode.None))
+            {
+                if (grabber.HandSide == ControllerHand.Left && leftGrabber == null)
+                    leftGrabber = grabber;
+                else if (grabber.HandSide == ControllerHand.Right && rightGrabber == null)
+                    rightGrabber = grabber;
+            }
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -57,8 +86,7 @@ public class SceneTeleportTrigger : MonoBehaviour
         playerInside = true;
 
         // Show prompt when player enters trigger
-        if (promptText != null)
-            promptText.SetActive(true);
+        SetPromptVisible(true);
     }
 
     private void OnTriggerExit(Collider other)
@@ -69,8 +97,7 @@ public class SceneTeleportTrigger : MonoBehaviour
         playerInside = false;
 
         // Hide prompt when player leaves trigger
-        if (promptText != null)
-            promptText.SetActive(false);
+        SetPromptVisible(false);
     }
 
     private void Update()
@@ -102,10 +129,50 @@ public class SceneTeleportTrigger : MonoBehaviour
                            // VRIF checks ForceRelease in Grabber.Update(), so we give it 1 frame to process release first
 
         // Hide prompt before switching scenes
-        if (promptText != null)
-            promptText.SetActive(false);
+        SetPromptVisible(false);
+
+        if (!string.IsNullOrEmpty(targetSpawnPoint))
+        {
+            SpawnPoint spawn = SpawnPoint.Find(targetSpawnPoint);
+            if (spawn == null)
+                Debug.LogWarning($"[SceneTeleportTrigger] SpawnPoint '{targetSpawnPoint}' not found in the loaded scenes.");
+            else
+                spawn.TeleportPlayerHere();
+
+            // The player leaves the trigger without OnTriggerExit firing reliably
+            // (it's a teleport, not a walk) — reset so the next visit works.
+            playerInside = false;
+            isTeleporting = false;
+            yield break;
+        }
 
         SceneManager.LoadScene(targetScene); /* Target scene is the exact name of the scene in "Scene List",
                                                 that has to be on in Build Profiles menu File -> Build Profiles */
+    }
+
+    private void SetPromptVisible(bool visible)
+    {
+        if (promptText == null)
+            return;
+
+        if (visible && !string.IsNullOrEmpty(promptMessage))
+        {
+            TMP_Text label = promptText.GetComponentInChildren<TMP_Text>(true);
+            if (label != null)
+                label.text = promptMessage;
+        }
+
+        promptText.SetActive(visible);
+    }
+
+    // Finds an object by name across all loaded scenes, including inactive ones.
+    private static GameObject FindSceneObject(string objectName)
+    {
+        foreach (Transform t in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (t.name == objectName)
+                return t.gameObject;
+        }
+        return null;
     }
 }

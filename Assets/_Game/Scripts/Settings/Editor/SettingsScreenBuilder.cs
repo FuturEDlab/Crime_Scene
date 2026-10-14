@@ -61,7 +61,7 @@ public static class SettingsScreenBuilder
             Debug.Log("[SettingsScreenBuilder] Settings screen built and saved into Tablet_manager.prefab.");
             EditorUtility.DisplayDialog("Build iPad Settings Screen",
                 "Done. Settings screen built inside Tablet_manager.prefab.\n\n" +
-                "Open the prefab to inspect it, then Play CSHouse and tap the Settings icon on the tablet.", "OK");
+                "Open the prefab to inspect it, then Play CrimeScene_Main and tap the Settings icon on the tablet.", "OK");
         }
         finally
         {

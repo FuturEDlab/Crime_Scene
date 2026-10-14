@@ -27,6 +27,7 @@ public static class GazeDoorBootstrap
     private const float DefaultOpenAngle = 90f;
 
     private static bool _hooked;
+    private static readonly System.Collections.Generic.HashSet<int> ExcludedReported = new();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Init()
@@ -47,28 +48,41 @@ public static class GazeDoorBootstrap
         DoorHelper[] doors = Object.FindObjectsByType<DoorHelper>(
             FindObjectsInactive.Include, FindObjectsSortMode.None);
 
+        // Additive scenes raise sceneLoaded several times in one frame, and the
+        // BNG components removed by an earlier pass are only destroyed at the end
+        // of the frame — skip doors that already have their GazeDoor.
+        int converted = 0;
         foreach (DoorHelper door in doors)
-            ConvertDoor(door);
+        {
+            if (ConvertDoor(door))
+                converted++;
+        }
 
-        if (doors.Length > 0)
+        if (converted > 0)
         {
             DoorGazeManager.EnsureExists();
-            Debug.Log($"[GazeDoors] Converted {doors.Length} door(s): closed, ungrabbable, gaze+button to open/close.");
+            Debug.Log($"[GazeDoors] Converted {converted} door(s): closed, ungrabbable, gaze+button to open/close.");
         }
     }
 
-    private static void ConvertDoor(DoorHelper helper)
+    // Returns true if the door was converted by this call.
+    private static bool ConvertDoor(DoorHelper helper)
     {
         Transform doorTransform = helper.transform;
 
         // The whole DoorWithHandle assembly (frame, door, handle objects).
         Transform assembly = doorTransform.parent != null ? doorTransform.parent : doorTransform;
 
+        // Already converted by an earlier pass.
+        if (assembly.GetComponent<GazeDoor>() != null)
+            return false;
+
         // Per-door opt-out: leave this door as an original BNG physics door.
         if (assembly.GetComponentInChildren<GazeDoorExclude>(true) != null)
         {
-            Debug.Log($"[GazeDoors] '{assembly.name}' excluded — keeping original BNG door behaviour.");
-            return;
+            if (ExcludedReported.Add(assembly.GetInstanceID()))
+                Debug.Log($"[GazeDoors] '{assembly.name}' excluded — keeping original BNG door behaviour.");
+            return false;
         }
 
         // An explicit per-door override fixes both magnitude AND direction;
@@ -131,11 +145,9 @@ public static class GazeDoorBootstrap
 
         // GazeDoor sits on the assembly root so a raycast hitting ANY collider
         // of the door (panel, frame, handle) resolves to it via GetComponentInParent.
-        if (assembly.GetComponent<GazeDoor>() == null)
-        {
-            GazeDoor gazeDoor = assembly.gameObject.AddComponent<GazeDoor>();
-            gazeDoor.Configure(doorTransform, localAnchor, localAxis, openAngle, hasForcedAngle);
-        }
+        GazeDoor gazeDoor = assembly.gameObject.AddComponent<GazeDoor>();
+        gazeDoor.Configure(doorTransform, localAnchor, localAxis, openAngle, hasForcedAngle);
+        return true;
     }
 }
 

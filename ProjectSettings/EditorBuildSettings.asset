@@ -6,11 +6,50 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/_Game/Scenes/Production/CSHouse.unity
-    guid: 373fc8374c7b3b5409e77f746d677d56
+    path: Assets/_Game/Scenes/Production/CrimeScene/CrimeScene_Main.unity
+    guid: 1fb5c29cf718bd748898aeb0f4dd5d9a
   - enabled: 1
-    path: Assets/_Game/Scenes/Production/CS_Outside.unity
-    guid: a11cfd8e32bd94a60a392b6943f165c4
+    path: Assets/_Game/Scenes/Production/CrimeScene/CrimeScene_HouseShell.unity
+    guid: fd8629027c3613049a82aeb952f7affb
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/CrimeScene_Outside.unity
+    guid: dec4b285f663df04a98fd6d73690b9fb
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_Entryway.unity
+    guid: 6b72dbb7fad83e243b4fba51644559b2
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_LivingRoom.unity
+    guid: b2b7ea7c60ed93a4c9520cf5f5a8edc8
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_Kitchen.unity
+    guid: 328d1b5151e355e42bb1e222f92e043b
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_DownstairsHallway.unity
+    guid: 487a8b800d76e2b4fb272293e6365f66
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_UnderStairsStorage.unity
+    guid: e184a0a2b12485849ade1c31dfe32a80
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_StairsUpstairsHallway.unity
+    guid: acced6f2cea907d4484b80e9883be91b
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_MainBedroom.unity
+    guid: 72445a2ba4f943a4f9d8ed1176fe9fe5
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_Bedroom2.unity
+    guid: dd1ad49e16b63a14381f3361a8bd53ed
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_UpstairsBathroom.unity
+    guid: e150e64ca1493dd4abf6b916ae8170d3
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_UpstairsCloset.unity
+    guid: 03f3b4fd912d7064fbdae244881e034c
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/Rooms/CrimeScene_UpstairsSpareRoom.unity
+    guid: aec31e21dcfe7d647a0f86114c2f069c
+  - enabled: 1
+    path: Assets/_Game/Scenes/Production/CrimeScene/CrimeScene_Gameplay.unity
+    guid: 56c9026baf4cf7c40807f2a01c10bf02
   - enabled: 0
     path: Assets/_Game/Scenes/Flow/MainMenu.unity
     guid: a13e633e3013e094ca35edda4329fe91

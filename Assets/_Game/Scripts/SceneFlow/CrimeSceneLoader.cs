@@ -24,13 +24,16 @@ public class CrimeSceneLoader : MonoBehaviour
         "CrimeScene_LivingRoom",
         "CrimeScene_Kitchen",
         "CrimeScene_DownstairsHallway",
-        "CrimeScene_UnderStairsStorage",
+        "CrimeScene_DownstairsCoatCloset",
+        "CrimeScene_UnderStairsCloset",
+        "CrimeScene_DownstairsBathroom",
         "CrimeScene_StairsUpstairsHallway",
         "CrimeScene_MainBedroom",
+        "CrimeScene_UpstairsWalkInCloset",
         "CrimeScene_Bedroom2",
         "CrimeScene_UpstairsBathroom",
         "CrimeScene_UpstairsCloset",
-        "CrimeScene_UpstairsSpareRoom",
+        "CrimeScene_UpstairsOffice",
         "CrimeScene_Gameplay",
     };
 

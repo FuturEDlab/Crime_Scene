@@ -9,8 +9,8 @@ All custom Crime Scene content lives under `Assets/_Game/`. Third-party packages
 | `Scenes/Production/CrimeScene/` | The crime scene, split into additive scenes (see **Additive crime scene** below). Room scenes are in `Rooms/` |
 | `Scenes/Flow/` | Menus, tutorial, and experience flow scenes |
 | `Scenes/Dev/` | Test and prototype scenes only |
-| `Scripts/Core/` | XR recenter, gaze doors, ambient audio |
-| `Scripts/SceneFlow/` | Scene loading (`CrimeSceneLoader`), spawn points, teleport triggers, tablet persistence |
+| `Scripts/Core/` | XR recenter, gaze doors, ambient audio, map border (`MapBoundary`) |
+| `Scripts/SceneFlow/` | Scene loading (`CrimeSceneLoader`), spawn points, teleport triggers, fall/out-of-bounds respawn (`PlayerFallRespawn`), tablet persistence |
 | `Scripts/Tablet/` | Tablet UI (`ScreenManager` is the one tablet UI controller), clock, notebook, recall |
 | `Scripts/Interaction/` | Raycast grab/drop interactables |
 | `Scripts/Settings/` | Player settings persistence |
@@ -47,13 +47,13 @@ The house, the street and the gameplay layer are separate scenes so the modeler 
 
 | Scene | Owns |
 |-------|------|
-| `CrimeScene_Main` | Global systems only: `Systems/SceneLoader` (`CrimeSceneLoader`), `Systems/Lighting` (the sun), `XR/XR Rig Rigidbody`, `Tablet_manager`, `TabletRecall`. Main is the active scene, so lighting/RenderSettings live here |
+| `CrimeScene_Main` | Global systems only: `Systems/SceneLoader` (`CrimeSceneLoader`), `Systems/Lighting` (the sun), `Systems/FallRespawn` (`PlayerFallRespawn`), `XR/XR Rig Rigidbody`, `Tablet_manager`, `TabletRecall`. Main is the active scene, so lighting/RenderSettings live here |
 | `CrimeScene_HouseShell` | Anything shared by several rooms: house structure mesh, roof, garage/window trims, floor, all doors |
-| `CrimeScene_Outside` | Street, neighbouring houses, police props, outdoor ambience |
-| `Rooms/CrimeScene_<Room>` | Props that belong to one room: Entryway, LivingRoom, Kitchen, DownstairsHallway, UnderStairsStorage, StairsUpstairsHallway, MainBedroom, Bedroom2, UpstairsBathroom, UpstairsCloset, UpstairsSpareRoom |
+| `CrimeScene_Outside` | Street, neighbouring houses, police props, outdoor ambience, `Outside/MapBoundary` (invisible map border — drag its corner handles in the Scene view to reshape it) |
+| `Rooms/CrimeScene_<Room>` | Props that belong to one room: Entryway, LivingRoom, Kitchen, DownstairsHallway, DownstairsCoatCloset, UnderStairsCloset, DownstairsBathroom, StairsUpstairsHallway, MainBedroom, UpstairsWalkInCloset, Bedroom2, UpstairsBathroom, UpstairsCloset, UpstairsOffice. Each room's root empty sits in the middle of that room on its floor; a room with no props yet holds a `Placeholder Cube` (delete it once the room has a real object) |
 | `CrimeScene_Gameplay` | Gameplay-only objects: `Objectives`, `GlobalTriggers` (front-door teleports), `SpawnPoints`, `Narration`, `InvestigationSystems`, `UI` |
 
-Room map (house space, +z is the street side): ground floor — Entryway (front door), Living Room (+z, right), Kitchen + pantry (−z, right), Under Stairs Storage (coat closet), Downstairs Hallway (back left, incl. the small back room). Upstairs — Main Bedroom (+z, right), Upstairs Closet (walk-in off the main bedroom), Bedroom 2 (−z, left), Upstairs Bathroom (small room at the end of the hall), Upstairs Spare Room (the room with the safe), Stairs + Upstairs Hallway.
+Room map (see the floor plan in `References/`; upstairs floor is at y ≈ 2.54). Ground floor — Entryway (front door / porch), Living Room (+x, +z), Kitchen + pantry (+x, −z), Downstairs Bathroom (half bath, back corner by the pantry), Downstairs Hallway (back hall), Downstairs Coat Closet (narrow closet off the back hall), Under Stairs Closet (door from the hall, under the upper stair flight). Upstairs — Stairs + Upstairs Hallway, Bedroom 2 (−x, −z), Upstairs Walk-In Closet (−x, +z, door into the main bedroom), Main Bedroom (+z), Upstairs Closet (the hall closet), Upstairs Bathroom (between the office and main bedroom), Upstairs Office (+x, −z, the room with the safe).
 
 **Where does a new object go?**
 - Used by more than one room (walls, doors, windows, floors) → `CrimeScene_HouseShell`.

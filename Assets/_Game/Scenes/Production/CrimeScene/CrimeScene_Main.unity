@@ -286,13 +286,16 @@ MonoBehaviour:
   - CrimeScene_LivingRoom
   - CrimeScene_Kitchen
   - CrimeScene_DownstairsHallway
-  - CrimeScene_UnderStairsStorage
+  - CrimeScene_DownstairsCoatCloset
+  - CrimeScene_UnderStairsCloset
+  - CrimeScene_DownstairsBathroom
   - CrimeScene_StairsUpstairsHallway
   - CrimeScene_MainBedroom
+  - CrimeScene_UpstairsWalkInCloset
   - CrimeScene_Bedroom2
   - CrimeScene_UpstairsBathroom
   - CrimeScene_UpstairsCloset
-  - CrimeScene_UpstairsSpareRoom
+  - CrimeScene_UpstairsOffice
   - CrimeScene_Gameplay
 --- !u!1 &1157612995
 GameObject:
@@ -325,6 +328,7 @@ Transform:
   m_Children:
   - {fileID: 643438169}
   - {fileID: 1179470462}
+  - {fileID: 1232018892}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1179470461
@@ -359,6 +363,84 @@ Transform:
   - {fileID: 1651244525}
   m_Father: {fileID: 1157612996}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1232018891
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1232018892}
+  - component: {fileID: 1232018893}
+  m_Layer: 0
+  m_Name: FallRespawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1232018892
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232018891}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1157612996}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1232018893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232018891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e477ae590a9d49468828731aa715da0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerFallRespawn
+  player: {fileID: 1278080207}
+  teleport: {fileID: 1278080206}
+  fallHeight: -10
+  outOfBoundsTolerance: 0.75
+  edgeInset: 1
+  recordInterval: 0.25
+  groundedDistance: 0.3
+  fallbackSpawnPoints:
+  - PlayerStart_Outside
+  - PlayerStart_Inside
+--- !u!114 &1278080206 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 217173776395460959, guid: 6b815e14ccbb2d7469b339871bdbe1cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 2123685276}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855d72b36bb9d904e80e3c9e587f3d8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1278080207 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3055363161605728187, guid: 6b815e14ccbb2d7469b339871bdbe1cf,
+    type: 3}
+  m_PrefabInstance: {fileID: 2123685276}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4688ae0e7d3f7c7498dd85852dfd2622, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1360443565
 PrefabInstance:
   m_ObjectHideFlags: 0

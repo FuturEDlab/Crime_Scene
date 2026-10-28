@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 114881917}
   m_Layer: 0
-  m_Name: Under Stairs Storage
+  m_Name: Downstairs Coat Closet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 114881916}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -1.7, y: 0, z: -0.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -165,7 +165,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.7293482
+      value: -0.029348135
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}
@@ -175,7 +175,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.604
+      value: -0.0039999485
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}
@@ -244,7 +244,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 515bb6414b82747348f2c5e1d84c266d,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.722
+      value: -0.021999955
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 515bb6414b82747348f2c5e1d84c266d,
         type: 3}
@@ -254,7 +254,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 515bb6414b82747348f2c5e1d84c266d,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.624
+      value: -0.023999989
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 515bb6414b82747348f2c5e1d84c266d,
         type: 3}
@@ -343,7 +343,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 0e0fc63dc5ecb4de3a736b4486143496,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.7156664
+      value: -0.015666366
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0e0fc63dc5ecb4de3a736b4486143496,
         type: 3}
@@ -353,7 +353,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 0e0fc63dc5ecb4de3a736b4486143496,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.571
+      value: 0.029000044
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0e0fc63dc5ecb4de3a736b4486143496,
         type: 3}
@@ -427,7 +427,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.742
+      value: -0.041999936
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}
@@ -437,7 +437,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.589
+      value: 0.011000037
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f1ece5ca1b9c444cc96a7c23bd3a9e74,
         type: 3}

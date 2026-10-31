@@ -57,9 +57,16 @@ Material:
     m_Floats:
     - _AlphaClip: 1
     - _AlphaToMask: 1
+    - _DstBlend: 0
+    - _DstBlendAlpha: 0
     - _Glossiness: 0.5
     - _Mode: 1
+    - _ReceiveShadows: 1
     - _Smoothness: 1
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
+    - _Surface: 0
+    - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}

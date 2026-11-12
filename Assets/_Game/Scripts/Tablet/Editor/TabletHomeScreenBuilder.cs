@@ -11,7 +11,8 @@
 //      creates the Inter TMP font assets next to the TTFs if missing.
 //   2. Status bar: replaces TopBar/Time with a "Status Bar" (live clock via
 //      TopBarClock, battery and wifi icons) plus a small Settings button that
-//      is not in the Figma frame. The bezel HomeButton is kept.
+//      is not in the Figma frame, built inactive (hidden until the pause menu
+//      decides where Settings lives). The bezel HomeButton is kept.
 //   3. Home screen: clears HomeScreen and rebuilds it as the case title plus
 //      four app icons (TabletAppIcon) with labels, wired to ScreenManager:
 //        Camera -> ShowCamera, Photos -> ShowEvidence (Photo Library),
@@ -144,6 +145,9 @@ public static class TabletHomeScreenBuilder
         colors.selectedColor = Color.white;
         settings.colors = colors;
         UnityEventTools.AddPersistentListener(settings.onClick, new UnityAction(screenManager.ShowSettings));
+        // Hidden for now: Settings will move into a pause menu later. Kept (wired,
+        // inactive) so it can come back by ticking the object active.
+        settingsRect.gameObject.SetActive(false);
 
         // SVG rects include the 1px stroke padding around the Figma frames.
         CreateImage("Battery", frame, a.battery, 613.4336f, 52.8994f, 38.5609f, 28.1005f);

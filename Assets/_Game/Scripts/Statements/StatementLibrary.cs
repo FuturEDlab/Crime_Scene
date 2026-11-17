@@ -30,6 +30,10 @@ public class StatementLibrary : MonoBehaviour
                  "the audio clip if both are set.")]
         public VideoClip video;
 
+        [Tooltip("Optional thumbnail for the Ring Footage grid. If empty, the " +
+                 "video's first frame is used.")]
+        public Texture2D thumbnail;
+
         public bool IsVideo => video != null;
         public bool IsPlayable => video != null || clip != null;
 

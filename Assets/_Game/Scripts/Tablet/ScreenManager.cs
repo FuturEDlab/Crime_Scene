@@ -21,6 +21,11 @@ public class ScreenManager : MonoBehaviour
     // Photo library screen (null-guarded: only the tutorial tablet has it).
     [SerializeField] private GameObject libraryScreen;
 
+    // Ring doorbell footage and audio recordings apps (null-guarded: only the
+    // Tablet_manager variant has them, built by TabletMediaScreensBuilder).
+    [SerializeField] private GameObject ringFootageScreen;
+    [SerializeField] private GameObject audioRecordingsScreen;
+
     // Optional: the GameObject holding the iPad's capture Camera (with IpadCamera).
     // Kept disabled unless the Camera app is open so it doesn't render every frame.
     [SerializeField] private GameObject cameraRig;
@@ -47,6 +52,12 @@ public class ScreenManager : MonoBehaviour
 
         if (libraryScreen != null)
             libraryScreen.SetActive(false);
+
+        if (ringFootageScreen != null)
+            ringFootageScreen.SetActive(false);
+
+        if (audioRecordingsScreen != null)
+            audioRecordingsScreen.SetActive(false);
 
         // Stop the iPad camera rendering whenever we leave the Camera app.
         if (cameraRig != null)
@@ -100,6 +111,22 @@ public class ScreenManager : MonoBehaviour
         HideAll();
         if (libraryScreen != null)
             libraryScreen.SetActive(true);
+    }
+
+    // Show the Ring Footage screen
+    public void ShowRingFootage()
+    {
+        HideAll();
+        if (ringFootageScreen != null)
+            ringFootageScreen.SetActive(true);
+    }
+
+    // Show the Audio Recordings screen
+    public void ShowAudioRecordings()
+    {
+        HideAll();
+        if (audioRecordingsScreen != null)
+            audioRecordingsScreen.SetActive(true);
     }
 
     // Show the Camera screen

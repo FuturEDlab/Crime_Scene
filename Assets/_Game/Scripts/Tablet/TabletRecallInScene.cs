@@ -8,9 +8,9 @@ public class TabletRecallInScene : MonoBehaviour
 {
     private static TabletRecallInScene _instance;
 
-    // Shared with the gaze-door system (GazeDoorSystem.cs): doors reuse the same
-    // "bring iPad" button, and set SuppressRecall while the player is looking at
-    // a door so pressing it opens the door WITHOUT also summoning the tablet.
+    // Lets other systems share the "bring iPad" button: while SuppressRecall is
+    // set, pressing it does NOT summon the tablet. (Was used by the old gaze
+    // doors; doors are now always open and use no input.)
     public static TabletRecallInScene Instance => _instance;
     public InputAction ToggleAction => toggleAction.action;
     public bool SuppressRecall { get; set; }

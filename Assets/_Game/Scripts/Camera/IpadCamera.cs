@@ -68,6 +68,20 @@ public class IpadCamera : MonoBehaviour
 
     private CanvasGroup _flashGroup;
 
+    [Header("Live Evidence Indicator")]
+    [Tooltip("Frame drawn over the viewfinder; recoloured while key evidence is in shot.")]
+    [SerializeField] private Image evidenceFrame;
+    [SerializeField] private Color noEvidenceColor = Color.white;
+    [SerializeField] private Color evidenceColor = new Color(0.933f, 0.82f, 0.176f); // #EED12D
+
+    [Tooltip("Shown only while key evidence is in shot (the \"Evidence Detected\" label).")]
+    [SerializeField] private GameObject evidenceLabel;
+
+    [Tooltip("Seconds between live checks. The check is a frustum test plus raycasts per item.")]
+    [SerializeField] private float evidenceCheckInterval = 0.2f;
+
+    private float _evidenceTimer;
+
     [Header("Key Item Detection")]
     [Tooltip("Max distance (metres) at which a key item still counts as photographed.")]
     [SerializeField] private float maxDetectionDistance = 8f;
@@ -137,6 +151,28 @@ public class IpadCamera : MonoBehaviour
             if (_flashTimer <= 0f && shutterFlash != null)
                 shutterFlash.SetActive(false);
         }
+
+        UpdateEvidenceIndicator();
+    }
+
+    // Live "Evidence Detected" feedback in the viewfinder. Uses the same rules
+    // as a real capture but never marks anything found — only the shutter does.
+    private void UpdateEvidenceIndicator()
+    {
+        if (evidenceFrame == null && evidenceLabel == null)
+            return;
+
+        _evidenceTimer -= Time.deltaTime;
+        if (_evidenceTimer > 0f)
+            return;
+        _evidenceTimer = evidenceCheckInterval;
+
+        bool inShot = captureCamera != null && FindEvidenceInFrame(false).Count > 0;
+
+        if (evidenceFrame != null)
+            evidenceFrame.color = inShot ? evidenceColor : noEvidenceColor;
+        if (evidenceLabel != null && evidenceLabel.activeSelf != inShot)
+            evidenceLabel.SetActive(inShot);
     }
 
     // LateUpdate runs after grab/physics has moved the tablet for this frame, so
@@ -299,15 +335,33 @@ public class IpadCamera : MonoBehaviour
         PlayShutterFlash();
     }
 
-    // Finds every key item currently inside the camera frustum (and, optionally,
-    // not occluded), records it in the grading backend and returns the ids that
-    // were visible in this shot.
+    // Records every key item visible in this shot in the grading backend and
+    // returns their ids.
     private List<string> DetectAndMarkEvidence()
     {
         var capturedIds = new List<string>();
         EvidenceGradingManager grading = EvidenceGradingManager.Instance;
         if (grading == null)
             return capturedIds;
+
+        foreach (KeyEvidenceItem item in FindEvidenceInFrame(verboseLogging))
+        {
+            grading.MarkFound(item.evidenceId);
+            capturedIds.Add(item.evidenceId);
+        }
+
+        return capturedIds;
+    }
+
+    // Finds every key item currently inside the camera frustum, within range
+    // and (optionally) not occluded. Logging is off for the live indicator,
+    // which runs several times a second.
+    private List<KeyEvidenceItem> FindEvidenceInFrame(bool log)
+    {
+        var visible = new List<KeyEvidenceItem>();
+        EvidenceGradingManager grading = EvidenceGradingManager.Instance;
+        if (grading == null)
+            return visible;
 
         if (playerHead == null && Camera.main != null)
             playerHead = Camera.main.transform;
@@ -333,7 +387,7 @@ public class IpadCamera : MonoBehaviour
             float distance = (bounds.center - camPos).magnitude;
             if (distance > maxDetectionDistance)
             {
-                if (verboseLogging)
+                if (log)
                     Debug.Log($"[IpadCamera] '{item.displayName}' in frame but too far " +
                               $"({distance:0.0}m > {maxDetectionDistance}m).");
                 continue;
@@ -341,16 +395,15 @@ public class IpadCamera : MonoBehaviour
 
             if (requireLineOfSight && IsOccluded(item, eyePos, bounds.center))
             {
-                if (verboseLogging)
+                if (log)
                     Debug.Log($"[IpadCamera] '{item.displayName}' in frame but occluded from the player's eyes.");
                 continue;
             }
 
-            grading.MarkFound(item.evidenceId);
-            capturedIds.Add(item.evidenceId);
+            visible.Add(item);
         }
 
-        return capturedIds;
+        return visible;
     }
 
     private bool IsOccluded(KeyEvidenceItem item, Vector3 origin, Vector3 targetPoint)

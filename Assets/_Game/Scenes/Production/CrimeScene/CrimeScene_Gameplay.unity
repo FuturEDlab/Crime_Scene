@@ -1680,6 +1680,8 @@ MonoBehaviour:
   cameraScreen: {fileID: 977915235}
   statementsScreen: {fileID: 0}
   libraryScreen: {fileID: 0}
+  ringFootageScreen: {fileID: 0}
+  audioRecordingsScreen: {fileID: 0}
   cameraRig: {fileID: 0}
 --- !u!114 &958978823
 MonoBehaviour:
@@ -2119,6 +2121,11 @@ PrefabInstance:
     - target: {fileID: 9053872109352458206, guid: 6e91db7f5e012a448821583d57f9b729,
         type: 3}
       propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9053872109352458206, guid: 6e91db7f5e012a448821583d57f9b729,
+        type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -4101,6 +4108,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: TeleportTrigger_ToOutside
+      objectReference: {fileID: 0}
+    - target: {fileID: 9053872109352458206, guid: 6e91db7f5e012a448821583d57f9b729,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

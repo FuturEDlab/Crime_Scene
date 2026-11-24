@@ -62,5 +62,21 @@ public class CrimeSceneLoader : MonoBehaviour
             // frame, before the rigidbody player can fall through missing floors.
             SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
         }
+
+        SceneManager.sceneLoaded += OnAdditiveSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnAdditiveSceneLoaded;
+    }
+
+    // The scenes are baked together (Tools > Crime Scene > Lighting > Bake
+    // Crime Scene Lighting); light probes from additively loaded scenes are
+    // only used once the probe network is rebuilt.
+    private static void OnAdditiveSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode == LoadSceneMode.Additive)
+            LightProbes.TetrahedralizeAsync();
     }
 }

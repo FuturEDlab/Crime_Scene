@@ -86,9 +86,11 @@ public static class MainMenuSceneBuilder
         controls.SetActive(false);
 
         EditorSceneManager.SaveScene(scene, ScenePath);
+        CrimeSceneLightingTools.GenerateEnvironmentLighting(scene);
         AddSceneToBuildSettings();
 
         string previews = RenderPreviews();
+        RenderEnvironmentPreviews();
         Debug.Log($"[{Title}] Saved {ScenePath} (first scene in Build Profiles). Previews: {previews}");
     }
 
@@ -143,24 +145,69 @@ public static class MainMenuSceneBuilder
 
     // ----------------------------------------------------- scene environment
 
+    // "Soft white void" look (task #172): a near-white gradient sky whose
+    // horizon colour is also the fog colour, a light grid floor (1 m cells)
+    // that fades into that white with distance, and a soft pool of light
+    // around the player. Everything is realtime and unshadowed (cheap on
+    // Quest); only the environment (ambient and reflections) is generated, so
+    // the scene doesn't depend on whatever lighting the previous scene left.
+    private static readonly Color VoidTop = Hex("E2E4E8");
+    private static readonly Color VoidHorizon = Hex("F6F7F9");
+    private static readonly Color VoidBottom = Hex("F6F7F9");
+    private const float FogDensity = 0.07f;
+    private const string FloorGridPath = "Assets/_Game/Art/Materials/MainMenu/MainMenu_FloorGrid.png";
+    private const float FloorSize = 200f; // metres; its edge is lost in the fog
+
     private static void BuildEnvironment()
     {
-        RenderSettings.skybox = null;
-        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.35f, 0.35f, 0.38f);
-        RenderSettings.fog = false;
+        var sky = GetOrCreateMaterial("MainMenu_VoidSkybox", "CrimeScene/MainMenuVoidSkybox", Color.white);
+        sky.SetColor("_TopColor", VoidTop);
+        sky.SetColor("_HorizonColor", VoidHorizon);
+        sky.SetColor("_BottomColor", VoidBottom);
+        RenderSettings.skybox = sky;
 
-        var light = new GameObject("Directional Light").AddComponent<Light>();
-        light.type = LightType.Directional;
-        light.intensity = 1f;
-        light.shadows = LightShadows.None;
-        light.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+        // A little below the sky's brightness, so the light pool still reads
+        // on the white floor and the floor brightens into the fog far away.
+        RenderSettings.ambientSkyColor = Hex("D4D6DA");
+        RenderSettings.ambientEquatorColor = Hex("C6C8CC");
+        RenderSettings.ambientGroundColor = Hex("A9ABB0");
+        RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Skybox;
+        RenderSettings.reflectionIntensity = 1f;
+
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.ExponentialSquared;
+        RenderSettings.fogDensity = FogDensity;
+        RenderSettings.fogColor = VoidHorizon;
+
+        // Soft pool of light on the floor around the player.
+        var spot = new GameObject("Spot Light").AddComponent<Light>();
+        spot.type = LightType.Spot;
+        spot.color = Hex("FFF6EA");
+        spot.intensity = 9f;
+        spot.range = 9f;
+        spot.spotAngle = 110f;
+        spot.innerSpotAngle = 20f;
+        spot.shadows = LightShadows.None;
+        spot.transform.SetPositionAndRotation(new Vector3(0f, 4.5f, 0.6f), Quaternion.Euler(90f, 0f, 0f));
+
+        // Dim fill so hands and the floor keep some shape.
+        var fill = new GameObject("Directional Light").AddComponent<Light>();
+        fill.type = LightType.Directional;
+        fill.color = Hex("F2F4FF");
+        fill.intensity = 0.2f;
+        fill.shadows = LightShadows.None;
+        fill.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
 
         GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
         floor.name = "Floor";
-        floor.transform.localScale = new Vector3(2f, 1f, 2f); // 20 x 20 m; the rigidbody player needs ground
-        floor.GetComponent<MeshRenderer>().sharedMaterial =
-            GetOrCreateMaterial("MainMenu_Floor", "Universal Render Pipeline/Lit", Hex("1A1A1E"));
+        // The rigidbody player needs ground. Unity's plane is 10 m at scale 1.
+        floor.transform.localScale = new Vector3(FloorSize / 10f, 1f, FloorSize / 10f);
+        var floorMaterial = GetOrCreateMaterial("MainMenu_Floor", "Universal Render Pipeline/Lit", Color.white);
+        floorMaterial.SetTexture("_BaseMap", ImportFloorGrid());
+        floorMaterial.SetTextureScale("_BaseMap", Vector2.one * FloorSize); // one texture tile = 1 m
+        floorMaterial.SetFloat("_Smoothness", 0.1f);
+        floor.GetComponent<MeshRenderer>().sharedMaterial = floorMaterial;
 
         // Placeholder for the star placement indicator (to be swapped later).
         GameObject indicator = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -170,6 +217,23 @@ public static class MainMenuSceneBuilder
         indicator.transform.localScale = new Vector3(IndicatorSize, 0.01f, IndicatorSize);
         indicator.GetComponent<MeshRenderer>().sharedMaterial =
             GetOrCreateMaterial("MainMenu_PlacementIndicator", "Universal Render Pipeline/Unlit", Hex("EED12D"));
+    }
+
+    // Tiling grid with trilinear + anisotropic filtering, so the lines stay
+    // clean (no shimmer) where the floor is seen at a grazing angle.
+    private static Texture2D ImportFloorGrid()
+    {
+        var importer = AssetImporter.GetAtPath(FloorGridPath) as TextureImporter;
+        if (importer == null)
+            throw new System.Exception("Missing texture: " + FloorGridPath);
+        importer.textureType = TextureImporterType.Default;
+        importer.sRGBTexture = true;
+        importer.mipmapEnabled = true;
+        importer.wrapMode = TextureWrapMode.Repeat;
+        importer.filterMode = FilterMode.Trilinear;
+        importer.anisoLevel = 8;
+        importer.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(FloorGridPath);
     }
 
     private static Material GetOrCreateMaterial(string name, string shaderName, Color color)
@@ -683,5 +747,55 @@ public static class MainMenuSceneBuilder
         string folder = Path.GetFullPath(PreviewFolder);
         Debug.Log("[Main Menu Previews] Written to " + folder);
         return folder;
+    }
+
+    // Eye-level views of the open Main_Menu scene's environment (sky, fog,
+    // floor and lights), to Temp/MainMenuPreviews/environment_*.png.
+    [MenuItem("Tools/Crime Scene/Render Main Menu Environment Previews")]
+    public static void RenderEnvironmentPreviews()
+    {
+        Directory.CreateDirectory(PreviewFolder);
+        var cameraGo = new GameObject("Environment Preview Camera") { hideFlags = HideFlags.HideAndDontSave };
+        var cam = cameraGo.AddComponent<Camera>();
+        cameraGo.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>().renderPostProcessing = false;
+        cam.clearFlags = CameraClearFlags.Skybox;
+        cam.fieldOfView = 80f;
+        cam.nearClipPlane = 0.05f;
+        cam.farClipPlane = 1000f;
+        cam.aspect = 4f / 3f;
+        var rt = new RenderTexture(1024, 768, 24, RenderTextureFormat.ARGB32);
+        cam.targetTexture = rt;
+
+        var shots = new (string name, Vector3 position, Vector3 euler)[]
+        {
+            ("environment_front", new Vector3(0f, 1.6f, 0f), new Vector3(0f, 0f, 0f)),
+            ("environment_down", new Vector3(0f, 1.6f, 0f), new Vector3(45f, 0f, 0f)),
+            ("environment_back", new Vector3(0f, 1.6f, 0f), new Vector3(10f, 180f, 0f)),
+            ("environment_side", new Vector3(0f, 1.6f, 0f), new Vector3(0f, 90f, 0f)),
+            ("environment_overview", new Vector3(3.5f, 2.6f, -3.5f), new Vector3(15f, -35f, 0f)),
+        };
+
+        try
+        {
+            foreach (var shot in shots)
+            {
+                cam.transform.SetPositionAndRotation(shot.position, Quaternion.Euler(shot.euler));
+                cam.Render();
+                var previous = RenderTexture.active;
+                RenderTexture.active = rt;
+                var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+                tex.Apply();
+                RenderTexture.active = previous;
+                File.WriteAllBytes(Path.Combine(PreviewFolder, shot.name + ".png"), tex.EncodeToPNG());
+                Object.DestroyImmediate(tex);
+            }
+        }
+        finally
+        {
+            cam.targetTexture = null;
+            Object.DestroyImmediate(rt);
+            Object.DestroyImmediate(cameraGo);
+        }
     }
 }
